@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import MainLayout from './components/MainLayout'
 import Sidebar from './components/Sidebar'
+import InstallPWA from './components/InstallPWA'
 
 function App() {
   // Initialize darkMode state from localStorage or default to system preference
@@ -58,6 +59,9 @@ function App() {
       >
         <MainLayout darkMode={darkMode} />
       </div>
+
+      {/* PWA Install Button */}
+      <InstallPWA />
     </div>
   )
 }
