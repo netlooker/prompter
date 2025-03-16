@@ -35,11 +35,11 @@ function Sidebar({ sidebarOpen, darkMode, toggleSidebar, toggleDarkMode }: Sideb
   return (
     <div
       className={`${
-        sidebarOpen ? 'w-64' : 'w-20'
+        sidebarOpen ? 'w-48' : 'w-16'
       } ${sidebarBgClass} h-screen fixed left-0 transition-all duration-300 ease-in-out flex flex-col shadow-md z-10`}
     >
       {/* Sidebar header */}
-      <div className={`flex items-center justify-between p-4 border-b ${borderClass}`}>
+      <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} p-3 border-b ${borderClass}`}>
         {sidebarOpen && (
           <h1 className={`text-xl font-semibold ${logoColor}`}>Prompter</h1>
         )}
@@ -53,13 +53,13 @@ function Sidebar({ sidebarOpen, darkMode, toggleSidebar, toggleDarkMode }: Sideb
       </div>
 
       {/* Sidebar content */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-2 px-2">
+      <nav className="flex-1 overflow-y-auto py-2">
+        <ul className="space-y-1 px-2">
           {navItems.map((item, index) => (
             <li key={index}>
               <a
                 href="#"
-                className={`flex items-center p-3 rounded-lg ${
+                className={`flex ${sidebarOpen ? 'items-center' : 'justify-center'} p-2 rounded-lg ${
                   item.active
                     ? `${activeNavItemBgClass} ${activeNavItemTextClass}`
                     : hoverBgClass
@@ -74,7 +74,7 @@ function Sidebar({ sidebarOpen, darkMode, toggleSidebar, toggleDarkMode }: Sideb
       </nav>
 
       {/* Sidebar footer */}
-      <div className={`p-4 border-t ${borderClass}`}>
+      <div className={`p-3 border-t ${borderClass}`}>
         <button
           onClick={toggleDarkMode}
           className={`flex items-center justify-center w-full p-2 rounded-lg ${hoverBgClass} transition-colors`}
