@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <title>PWA Debug</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    h1, h2 {
+      color: #4f46e5;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+    .warning {
+      color: orange;
+    }
+    button {
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #3c35b5;
+    }
+    pre {
+      background-color: #f4f4f8;
+      padding: 10px;
+      border-radius: 5px;
+      overflow: auto;
+    }
+    #installBtn {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>PWA Install Diagnostics</h1>
+  
+  <div class="section">
+    <h2>Basic Requirements</h2>
+    <div id="basic-requirements"></div>
+  </div>
+  
+  <div class="section">
+    <h2>Manifest</h2>
+    <div id="manifest-info"></div>
+    <pre id="manifest-content"></pre>
+  </div>
+  
+  <div class="section">
+    <h2>Service Worker</h2>
+    <div id="sw-info"></div>
+  </div>
+  
+  <div class="section">
+    <h2>Installation</h2>
+    <p id="install-status">Checking installation availability...</p>
+    <button id="installBtn">Install App</button>
+  </div>
+  
+  <script>
+    // 1. Check basic requirements
+    const basicRequirementsEl = document.getElementById('basic-requirements');
+    const checks = [
+      { name: 'HTTPS or localhost', check: window.location.protocol === 'https:' || window.location.hostname === 'localhost' },
+      { name: 'Service Worker API', check: 'serviceWorker' in navigator },
+      { name: 'Secure Context', check: window.isSecureContext }
+    ];
+    
+    checks.forEach(item => {
+      const el = document.createElement('p');
+      el.innerHTML = `${item.name}: <span class="${item.check ? 'success' : 'error'}">${item.check ? '✓' : '✗'}</span>`;
+      basicRequirementsEl.appendChild(el);
+    });
+    
+    // 2. Check manifest
+    const manifestInfoEl = document.getElementById('manifest-info');
+    const manifestContentEl = document.getElementById('manifest-content');
+    
+    const manifestLink = document.querySelector('link[rel="manifest"]');
+    if (manifestLink) {
+      manifestInfoEl.innerHTML = `<p>Manifest link: <span class="success">Found (${manifestLink.href})</span></p>`;
+      
+      fetch(manifestLink.href)
+        .then(response => {
+          manifestInfoEl.innerHTML += `<p>Manifest fetch: <span class="${response.ok ? 'success' : 'error'}">${response.status} ${response.statusText}</span></p>`;
+          return response.json();
+        })
+        .then(data => {
+          manifestContentEl.textContent = JSON.stringify(data, null, 2);
+          
+          // Check required fields
+          const requiredFields = ['name', 'short_name', 'start_url', 'display', 'icons'];
+          requiredFields.forEach(field => {
+            const exists = data[field] !== undefined;
+            manifestInfoEl.innerHTML += `<p>Field "${field}": <span class="${exists ? 'success' : 'error'}">${exists ? '✓' : 'Missing'}</span></p>`;
+          });
+          
+          // Check icons
+          if (data.icons && Array.isArray(data.icons)) {
+            manifestInfoEl.innerHTML += `<p>Icons: <span class="success">Found ${data.icons.length}</span></p>`;
+            
+            // Check if we have required sizes
+            const has192 = data.icons.some(icon => icon.sizes === '192x192');
+            const has512 = data.icons.some(icon => icon.sizes === '512x512');
+            
+            manifestInfoEl.innerHTML += `<p>192x192 icon: <span class="${has192 ? 'success' : 'error'}">${has192 ? '✓' : 'Missing'}</span></p>`;
+            manifestInfoEl.innerHTML += `<p>512x512 icon: <span class="${has512 ? 'success' : 'error'}">${has512 ? '✓' : 'Missing'}</span></p>`;
+            
+            // Check icons exist
+            data.icons.forEach(async (icon, index) => {
+              try {
+                const response = await fetch(icon.src);
+                manifestInfoEl.innerHTML += `<p>Icon ${index+1} (${icon.src}): <span class="${response.ok ? 'success' : 'error'}">${response.ok ? '✓' : 'Not found'}</span></p>`;
+              } catch (e) {
+                manifestInfoEl.innerHTML += `<p>Icon ${index+1} (${icon.src}): <span class="error">Error: ${e.message}</span></p>`;
+              }
+            });
+          } else {
+            manifestInfoEl.innerHTML += `<p>Icons: <span class="error">Missing or not an array</span></p>`;
+          }
+        })
+        .catch(error => {
+          manifestInfoEl.innerHTML += `<p>Manifest parse: <span class="error">Error: ${error.message}</span></p>`;
+        });
+    } else {
+      manifestInfoEl.innerHTML = `<p>Manifest link: <span class="error">Not found</span></p>`;
+    }
+    
+    // 3. Check service worker
+    const swInfoEl = document.getElementById('sw-info');
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(registrations => {
+          if (registrations.length === 0) {
+            swInfoEl.innerHTML = `<p>Service Worker: <span class="warning">No service workers registered</span></p>`;
+          } else {
+            swInfoEl.innerHTML = `<p>Service Worker: <span class="success">Found ${registrations.length} registration(s)</span></p>`;
+            
+            registrations.forEach((registration, index) => {
+              swInfoEl.innerHTML += `<p>SW ${index+1} scope: <span class="success">${registration.scope}</span></p>`;
+              swInfoEl.innerHTML += `<p>SW ${index+1} state: <span class="info">${registration.active ? 'Active' : (registration.installing ? 'Installing' : (registration.waiting ? 'Waiting' : 'Unknown'))}</span></p>`;
+            });
+          }
+        })
+        .catch(error => {
+          swInfoEl.innerHTML = `<p>Service Worker check: <span class="error">Error: ${error.message}</span></p>`;
+        });
+      
+      // Try to register our service-worker.js if none found
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        if (registrations.length === 0) {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              swInfoEl.innerHTML += `<p>Service Worker registration: <span class="success">Registered with scope ${registration.scope}</span></p>`;
+            })
+            .catch(error => {
+              swInfoEl.innerHTML += `<p>Service Worker registration: <span class="error">Failed: ${error.message}</span></p>`;
+            });
+        }
+      });
+    } else {
+      swInfoEl.innerHTML = `<p>Service Worker API: <span class="error">Not supported in this browser</span></p>`;
+    }
+    
+    // 4. Installation
+    const installStatus = document.getElementById('install-status');
+    const installBtn = document.getElementById('installBtn');
+    
+    // Save the install event
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent Chrome 67 and earlier from automatically showing the prompt
+      e.preventDefault();
+      
+      // Stash the event so it can be triggered later
+      deferredPrompt = e;
+      
+      // Update UI to notify the user they can install the PWA
+      installStatus.textContent = 'This app can be installed on your device. Click the install button to add it.';
+      installBtn.style.display = 'block';
+    });
+    
+    // Installation logic
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) {
+        installStatus.textContent = 'Installation is not available at this moment.';
+        return;
+      }
+      
+      // Show the prompt
+      deferredPrompt.prompt();
+      
+      // Wait for the user to respond to the prompt
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      // Update the install status based on user choice
+      if (outcome === 'accepted') {
+        installStatus.textContent = 'Thank you for installing our app!';
+      } else {
+        installStatus.textContent = 'Installation was canceled.';
+      }
+      
+      // Clear the saved prompt
+      deferredPrompt = null;
+      
+      // Hide the install button
+      installBtn.style.display = 'none';
+    });
+    
+    // Check if app is already installed
+    window.addEventListener('appinstalled', (e) => {
+      installStatus.textContent = 'Application has been successfully installed!';
+      installBtn.style.display = 'none';
+    });
+    
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      installStatus.textContent = 'This app is already installed.';
+      installBtn.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
