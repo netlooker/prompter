@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+/* Set base color scheme to support both light and dark */
+:root {
+  color-scheme: light dark;
+}
+
+/* Base transition for switching themes to make it smooth */
+* {
+  transition-property: color, background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}

@@ -4,7 +4,17 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <meta name="color-scheme" content="light dark" />
+    <title>Prompter PWA</title>
+    <script>
+      // On page load, apply the user's preferred color scheme 
+      // This prevents flash of incorrect theme
+      const darkMode = localStorage.getItem('darkMode');
+      if (darkMode === 'true' || 
+          (darkMode === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
