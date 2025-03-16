@@ -6,7 +6,7 @@ interface MainLayoutProps {
   children?: ReactNode;
 }
 
-function MainLayout({ darkMode, children }: MainLayoutProps) {
+function MainLayout({ darkMode }: MainLayoutProps) {
   // CSS Classes based on theme
   const cardBgClass = darkMode ? 'bg-slate-800' : 'bg-gray-50'
   const cardSecondaryBgClass = darkMode ? 'bg-slate-700' : 'bg-gray-200'
@@ -21,11 +21,11 @@ function MainLayout({ darkMode, children }: MainLayoutProps) {
             <Settings className="mr-2 h-5 w-5" />
             Dashboard Content
           </h2>
-          
+
           <p className={`mb-2 ${cardTextClass}`}>
             This is your main dashboard area. You can put your app content here.
           </p>
-          
+
           <div className="space-y-2">
             <div className={`${cardSecondaryBgClass} p-3 rounded-lg`}>
               <h3 className="font-medium mb-1 flex items-center">
@@ -36,7 +36,7 @@ function MainLayout({ darkMode, children }: MainLayoutProps) {
                 This is a collapsible section that can contain additional content.
               </p>
             </div>
-            
+
             <div className={`${cardSecondaryBgClass} p-3 rounded-lg`}>
               <h3 className="font-medium mb-1 flex items-center">
                 <ChevronDown className="mr-1 h-4 w-4" />
