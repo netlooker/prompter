@@ -6,7 +6,10 @@ import {
   Users,
   BarChart2,
   Sun,
-  Moon
+  Moon,
+  FileText,
+  Edit,
+  Plus
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -14,9 +17,20 @@ interface SidebarProps {
   darkMode: boolean;
   toggleSidebar: () => void;
   toggleDarkMode: () => void;
+  onNavigate?: (view: string) => void;
+  activeView?: string;
+  onNewPrompt?: () => void;
 }
 
-function Sidebar({ sidebarOpen, darkMode, toggleSidebar, toggleDarkMode }: SidebarProps) {
+function Sidebar({ 
+  sidebarOpen, 
+  darkMode, 
+  toggleSidebar, 
+  toggleDarkMode,
+  onNavigate,
+  activeView = 'prompts-library',
+  onNewPrompt
+}: SidebarProps) {
   // CSS Classes based on theme
   const sidebarBgClass = darkMode ? 'bg-slate-800' : 'bg-gray-100';
   const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
@@ -24,13 +38,23 @@ function Sidebar({ sidebarOpen, darkMode, toggleSidebar, toggleDarkMode }: Sideb
   const activeNavItemBgClass = darkMode ? 'bg-indigo-900/30' : 'bg-indigo-50';
   const activeNavItemTextClass = darkMode ? 'text-indigo-400' : 'text-indigo-600';
   const hoverBgClass = darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200';
+  const buttonBgClass = darkMode ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-indigo-500 hover:bg-indigo-600';
 
   const navItems = [
-    { icon: <Home size={20} />, label: 'Dashboard', active: true },
-    { icon: <BarChart2 size={20} />, label: 'Analytics' },
-    { icon: <Users size={20} />, label: 'Users' },
-    { icon: <Settings size={20} />, label: 'Settings' }
+    { id: 'dashboard', icon: <Home size={20} />, label: 'Dashboard' },
+    { id: 'prompts-library', icon: <FileText size={20} />, label: 'Prompts Library' },
+    { id: 'editor', icon: <Edit size={20} />, label: 'Editor' },
+    { id: 'analytics', icon: <BarChart2 size={20} />, label: 'Analytics' },
+    { id: 'users', icon: <Users size={20} />, label: 'Users' },
+    { id: 'settings', icon: <Settings size={20} />, label: 'Settings' }
   ];
+
+  const handleNavClick = (id: string) => {
+    if (onNavigate) {
+      onNavigate(id);
+      console.log('Navigating to:', id);
+    }
+  };
 
   return (
     <div
@@ -55,22 +79,46 @@ function Sidebar({ sidebarOpen, darkMode, toggleSidebar, toggleDarkMode }: Sideb
       {/* Sidebar content */}
       <nav className="flex-1 overflow-y-auto py-2">
         <ul className="space-y-1 px-2">
-          {navItems.map((item, index) => (
-            <li key={index}>
-              <a
-                href="#"
-                className={`flex ${sidebarOpen ? 'items-center' : 'justify-center'} p-2 rounded-lg ${
-                  item.active
+          {navItems.map((item) => (
+            <li key={item.id}>
+              <button
+                onClick={() => handleNavClick(item.id)}
+                className={`w-full flex ${sidebarOpen ? 'items-center' : 'justify-center'} p-2 rounded-lg ${
+                  activeView === item.id
                     ? `${activeNavItemBgClass} ${activeNavItemTextClass}`
                     : hoverBgClass
                 } transition-colors`}
               >
                 <span className="flex-shrink-0">{item.icon}</span>
                 {sidebarOpen && <span className="ml-3">{item.label}</span>}
-              </a>
+              </button>
             </li>
           ))}
         </ul>
+
+        {/* New Prompt button */}
+        {sidebarOpen && (
+          <div className="px-2 mt-4">
+            <button
+              onClick={onNewPrompt}
+              className={`w-full flex items-center p-2 rounded-lg ${buttonBgClass} text-white transition-colors`}
+            >
+              <Plus size={18} />
+              <span className="ml-2">New Prompt</span>
+            </button>
+          </div>
+        )}
+        {!sidebarOpen && (
+          <div className="px-2 mt-4">
+            <button
+              onClick={onNewPrompt}
+              className={`w-full flex justify-center p-2 rounded-lg ${buttonBgClass} text-white transition-colors`}
+              title="New Prompt"
+            >
+              <Plus size={18} />
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Sidebar footer */}
