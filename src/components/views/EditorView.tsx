@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { FileText, Save, MenuSquare, Sparkles } from 'lucide-react';
+import { FileText, Save, MenuSquare } from 'lucide-react';
 import { MarkdownEditor } from '../editor';
 import { TemplatePicker } from './TemplateSystem';
-import { AIPromptAssistant } from './AIPromptAssistant';
+
 import { PromptTemplate } from '../../types';
 
 interface EditorViewProps {
@@ -61,18 +61,7 @@ function EditorView({
   
 
   
-  // Handle inserting AI suggestion
-  const handleInsertSuggestion = (text: string) => {
-    setContent(prevContent => {
-      // Find cursor position or end of content
-      const position = prevContent.length;
-      
-      // Add two newlines if we're not at the beginning of the content
-      const separator = position > 0 ? '\n\n' : '';
-      
-      return prevContent + separator + text;
-    });
-  };
+
   
   // Toggle sidebar
   const toggleSidebar = (content: 'templates' | null) => {
@@ -147,12 +136,7 @@ function EditorView({
         )}
       </div>
       
-      {/* AI Assistant */}
-      <AIPromptAssistant
-        currentContent={content}
-        onInsertSuggestion={handleInsertSuggestion}
-        darkMode={darkMode}
-      />
+
     </div>
   );
 }
