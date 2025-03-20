@@ -7,12 +7,3 @@ export interface Prompt {
   updatedAt?: number;
 
 }
-
-
-export interface PromptTemplate {
-  id: string;
-  name: string;
-  description: string;
-  content: string;
-  category: string;
-}
