@@ -319,14 +319,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         isPreviewMode={isPreviewMode}
         isSplitView={splitView}
         darkMode={darkMode}
+        saveMessage={saveMessage}
       />
-      
-      {saveMessage && (
-        <div className={`px-4 py-2 ${darkMode ? 'bg-slate-700 text-gray-100' : 'bg-gray-100 text-gray-800'} flex items-center transition-all duration-300`}>
-          <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-          {saveMessage}
-        </div>
-      )}
+
       
       <div className="flex-grow relative">
         

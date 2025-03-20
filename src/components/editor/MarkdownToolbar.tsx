@@ -23,14 +23,16 @@ interface MarkdownToolbarProps {
   isPreviewMode: boolean;
   isSplitView?: boolean;
   darkMode: boolean;
+  saveMessage?: string;
 }
 
 const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ 
   onAction, 
   isPreviewMode, 
   isSplitView = false,
-  darkMode 
-}) => {
+  darkMode,
+  saveMessage = ''
+ }) => {
   const buttonClass = `p-2 rounded-md transition-colors ${darkMode 
     ? 'hover:bg-gray-700 text-gray-300 hover:text-white' 
     : 'hover:bg-gray-200 text-gray-700 hover:text-gray-900'}`;
@@ -222,17 +224,24 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
         )}
       </div>
 
-      <div className="flex-grow"></div>
-      
-      {withTooltip(
-        <button 
-          className={`${buttonClass} ${darkMode ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-indigo-500 hover:bg-indigo-600'} text-white`}
-          onClick={() => onAction('save')}
-        >
-          <Save size={18} />
-        </button>,
-        "Save (Ctrl+S)"
-      )}
+      <div className="flex items-center ml-auto">
+        {saveMessage && (
+          <div className="text-sm mr-2 flex items-center">
+            <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{saveMessage}</span>
+          </div>
+        )}
+        
+        {withTooltip(
+          <button 
+            className={`${buttonClass} ${darkMode ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-indigo-500 hover:bg-indigo-600'} text-white`}
+            onClick={() => onAction('save')}
+          >
+            <Save size={18} />
+          </button>,
+          "Save (Ctrl+S)"
+        )}
+      </div>
     </div>
   );
 };

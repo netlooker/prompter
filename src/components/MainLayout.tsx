@@ -1,14 +1,7 @@
-import { ReactNode, useState } from 'react'
-import { Settings, BarChart2, Users } from 'lucide-react'
+import { ReactNode, useState, useEffect } from 'react'
+import { Settings } from 'lucide-react'
 import { DashboardView, EditorView, PromptsLibraryView } from './views'
-
-interface Prompt {
-  id: string;
-  name: string;
-  content: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import { Prompt } from '../types'
 
 interface MainLayoutProps {
   darkMode: boolean;
@@ -29,21 +22,44 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
     { 
       id: '1', 
       name: 'General Writing Assistant', 
-      content: '# General Writing Assistant\n\nYou are a helpful writing assistant. Help users improve their writing by providing suggestions, fixing grammar issues, and enhancing clarity.\n\n## Instructions\n- Be concise but thorough\n- Focus on improving clarity and readability\n- Maintain the user\'s original tone and style' 
+      content: '# General Writing Assistant\n\nYou are a helpful writing assistant. Help users improve their writing by providing suggestions, fixing grammar issues, and enhancing clarity.\n\n## Instructions\n- Be concise but thorough\n- Focus on improving clarity and readability\n- Maintain the user\'s original tone and style',
+      createdAt: Date.now() - 1000000, // Some time in the past
+      updatedAt: Date.now() - 500000 // Some time in the past
     },
     { 
       id: '2', 
       name: 'Code Reviewer', 
-      content: '# Code Reviewer\n\nYou are a code review expert specializing in identifying bugs, performance issues, and security vulnerabilities.\n\n## Instructions\n- Analyze code snippets for potential bugs\n- Suggest performance improvements\n- Identify security issues\n- Provide clear explanations of all findings' 
+      content: '# Code Reviewer\n\nYou are a code review expert specializing in identifying bugs, performance issues, and security vulnerabilities.\n\n## Instructions\n- Analyze code snippets for potential bugs\n- Suggest performance improvements\n- Identify security issues\n- Provide clear explanations of all findings',
+      createdAt: Date.now() - 700000, // Some time in the past
+      updatedAt: Date.now() - 200000 // Some time in the past
     }
   ]);
 
+  // Load prompts from local storage on mount
+  useEffect(() => {
+    const savedPrompts = localStorage.getItem('prompter-prompts');
+    if (savedPrompts) {
+      try {
+        setPrompts(JSON.parse(savedPrompts));
+      } catch (error) {
+        console.error('Error loading prompts from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Save prompts to local storage when they change
+  useEffect(() => {
+    localStorage.setItem('prompter-prompts', JSON.stringify(prompts));
+  }, [prompts]);
+
   // Function to handle creating a new prompt
   const handleNewPrompt = () => {
-    const newPrompt = {
+    const newPrompt: Prompt = {
       id: `${Date.now()}`,
       name: 'New Prompt',
-      content: '# New Prompt\n\nReplace this with your instructions...'
+      content: '# New Prompt\n\nReplace this with your instructions...',
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     };
     setPrompts([...prompts, newPrompt]);
     setActivePromptId(newPrompt.id);
@@ -52,21 +68,27 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
 
   // Function to handle prompt content updates
   const handleSavePrompt = (content: string, title: string) => {
+    const now = Date.now();
+    
     if (activePromptId) {
+      // Update the prompt with new content
       setPrompts(prompts.map(prompt => 
         prompt.id === activePromptId 
-          ? { ...prompt, content, name: title } 
+          ? { ...prompt, content, name: title, updatedAt: now } 
           : prompt
       ));
     } else {
       // Create new prompt if none is active
-      const newPrompt = {
-        id: `${Date.now()}`,
+      const newPromptId = `${Date.now()}`;
+      const newPrompt: Prompt = {
+        id: newPromptId,
         name: title,
         content,
+        createdAt: now,
+        updatedAt: now
       };
       setPrompts([...prompts, newPrompt]);
-      setActivePromptId(newPrompt.id);
+      setActivePromptId(newPromptId);
     }
     onNavigate('prompts-library');
   };
@@ -79,9 +101,11 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
 
   // Function to handle deleting a prompt
   const handleDeletePrompt = (promptId: string) => {
-    setPrompts(prompts.filter(prompt => prompt.id !== promptId));
-    if (activePromptId === promptId) {
-      setActivePromptId(null);
+    if (window.confirm('Are you sure you want to delete this prompt? This action cannot be undone.')) {
+      setPrompts(prompts.filter(prompt => prompt.id !== promptId));
+      if (activePromptId === promptId) {
+        setActivePromptId(null);
+      }
     }
   };
 
@@ -123,41 +147,17 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
           />
         );
       
-      case 'analytics':
-        return (
-          <div className={`${cardBgClass} h-full rounded-lg shadow-md p-4`}>
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <BarChart2 className="mr-2 h-5 w-5" />
-              Analytics
-            </h2>
-            <p className={`${cardTextClass}`}>
-              Analytics feature coming soon.
-            </p>
-          </div>
-        );
-      
-      case 'users':
-        return (
-          <div className={`${cardBgClass} h-full rounded-lg shadow-md p-4`}>
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Users className="mr-2 h-5 w-5" />
-              Users
-            </h2>
-            <p className={`${cardTextClass}`}>
-              User management feature coming soon.
-            </p>
-          </div>
-        );
+
       
       case 'settings':
         return (
-          <div className={`${cardBgClass} h-full rounded-lg shadow-md p-4`}>
+          <div className={`${cardBgClass} h-full shadow-md p-4`}>
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <Settings className="mr-2 h-5 w-5" />
               Settings
             </h2>
             <div className="space-y-4">
-              <div className={`${darkMode ? 'bg-slate-700' : 'bg-gray-200'} p-4 rounded-lg`}>
+              <div className={`${darkMode ? 'bg-slate-700' : 'bg-gray-200'} p-4`}>
                 <h3 className="font-medium mb-2">Appearance</h3>
                 <p className={`text-sm ${cardTextClass} mb-2`}>
                   Customize the appearance of the application
@@ -174,7 +174,7 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
       
       default:
         return (
-          <div className={`${cardBgClass} h-full rounded-lg shadow-md p-4`}>
+          <div className={`${cardBgClass} h-full shadow-md p-4`}>
             <h2 className="text-xl font-semibold mb-2">
               Page Not Found
             </h2>

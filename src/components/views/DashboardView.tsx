@@ -14,20 +14,20 @@ function DashboardView({ darkMode, promptCount, onNavigateToPrompts }: Dashboard
 
   return (
     <div className="flex flex-col h-full">
-      <div className={`${cardBgClass} p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-        <h1 className="text-xl font-semibold mb-4 flex items-center">
+      <div className={`${cardBgClass} h-16 p-4 flex items-center border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+        <h1 className="text-xl font-semibold flex items-center">
           <Home className="mr-3 h-6 w-6" />
           Dashboard
         </h1>
-        <p className={`mb-4 ${cardTextClass}`}>
-          Welcome to the Prompter PWA. Use the sidebar to navigate to different sections.
+        <p className={`ml-4 ${cardTextClass}`}>
+          Welcome to the Prompter PWA
         </p>
       </div>
 
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div 
-            className={`${cardSecondaryBgClass} p-4 rounded-lg cursor-pointer hover:shadow-md transition-shadow`}
+            className={`${cardSecondaryBgClass} p-4 cursor-pointer hover:shadow-md transition-shadow`}
             onClick={onNavigateToPrompts}
           >
             <h3 className="font-medium mb-2 flex items-center">
@@ -39,7 +39,7 @@ function DashboardView({ darkMode, promptCount, onNavigateToPrompts }: Dashboard
             </p>
           </div>
           
-          <div className={`${cardSecondaryBgClass} p-4 rounded-lg`}>
+          <div className={`${cardSecondaryBgClass} p-4`}>
             <h3 className="font-medium mb-2 flex items-center">
               <Info className="mr-2 h-4 w-4" />
               Getting Started

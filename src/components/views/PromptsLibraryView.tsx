@@ -1,13 +1,6 @@
 import { useState } from 'react';
-import { FileText, Pencil, Plus, Search, Trash } from 'lucide-react';
-
-interface Prompt {
-  id: string;
-  name: string;
-  content: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import { FileText, Pencil, Plus, Search, Trash, History } from 'lucide-react';
+import { Prompt } from '../../types';
 
 interface PromptsLibraryViewProps {
   darkMode: boolean;
@@ -43,30 +36,29 @@ function PromptsLibraryView({
   const inputBgClass = darkMode ? 'bg-slate-700' : 'bg-white';
   const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
 
+  // Format date function
+  const formatDate = (timestamp?: number) => {
+    if (!timestamp) return 'N/A';
+    return new Date(timestamp).toLocaleDateString();
+  };
+
   return (
     <div className="flex flex-col h-full">
-      <div className={`${cardBgClass} p-4 flex justify-between items-center border-b ${borderClass}`}>
+      <div className={`${cardBgClass} h-16 p-4 flex items-center border-b ${borderClass}`}>
         <div className="flex items-center">
           <FileText className="mr-3 h-6 w-6" />
           <h1 className="text-xl font-semibold">Prompts Library</h1>
         </div>
-        <button 
-          onClick={onNewPrompt}
-          className={`${buttonBgClass} text-white px-4 py-2 rounded-md flex items-center`}
-        >
-          <Plus size={16} className="mr-2" />
-          New Prompt
-        </button>
       </div>
 
       <div className="p-4">
-        <div className={`relative ${inputBgClass} rounded-md mb-6`}>
+        <div className={`relative ${inputBgClass} mb-6`}>
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
           <input
             type="text"
-            className={`block w-full pl-10 pr-3 py-2 border ${borderClass} rounded-md leading-5 ${inputBgClass} ${cardTextClass} placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+            className={`block w-full pl-10 pr-3 py-2 border ${borderClass} leading-5 ${inputBgClass} ${cardTextClass} placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500`}
             placeholder="Search prompts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -77,37 +69,35 @@ function PromptsLibraryView({
           {filteredPrompts.map(prompt => (
             <div 
               key={prompt.id} 
-              className={`${cardBgClass} rounded-lg shadow p-4 border ${borderClass} ${hoverBgClass} transition-colors`}
+              className={`${cardBgClass} shadow p-4 border ${borderClass} ${hoverBgClass} transition-colors`}
             >
               <div className="font-medium text-lg mb-2">{prompt.name}</div>
               <p className={`${cardTextClass} mb-4 text-sm line-clamp-3`}>
                 {prompt.content.replace(/^#.*$/m, '').trim()}
               </p>
-              <div className="flex justify-end space-x-2">
-                <button 
-                  onClick={() => onDelete(prompt.id)}
-                  className={`p-2 rounded-md ${darkMode ? 'hover:bg-red-900/30 text-red-400' : 'hover:bg-red-100 text-red-600'}`}
-                >
-                  <Trash size={16} />
-                </button>
-                <button 
-                  onClick={() => onEdit(prompt.id)}
-                  className={`p-2 rounded-md ${darkMode ? 'hover:bg-indigo-900/30 text-indigo-400' : 'hover:bg-indigo-100 text-indigo-600'}`}
-                >
-                  <Pencil size={16} />
-                </button>
+              <div className="flex justify-between items-center">
+                <div className={`text-xs ${cardTextClass}`}>
+                  {prompt.updatedAt ? `Updated: ${formatDate(prompt.updatedAt)}` : ''}
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => onDelete(prompt.id)}
+                    className={`p-2 rounded-md ${darkMode ? 'hover:bg-red-900/30 text-red-400' : 'hover:bg-red-100 text-red-600'}`}
+                    title="Delete prompt"
+                  >
+                    <Trash size={16} />
+                  </button>
+                  <button 
+                    onClick={() => onEdit(prompt.id)}
+                    className={`p-2 rounded-md ${darkMode ? 'hover:bg-indigo-900/30 text-indigo-400' : 'hover:bg-indigo-100 text-indigo-600'}`}
+                    title="Edit prompt"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
-
-          {/* New Prompt Card */}
-          <div 
-            onClick={onNewPrompt}
-            className={`${cardBgClass} rounded-lg shadow p-4 border ${borderClass} border-dashed flex flex-col items-center justify-center min-h-[200px] cursor-pointer ${hoverBgClass}`}
-          >
-            <Plus size={24} className={cardTextClass} />
-            <div className="mt-2 font-medium">Create New Prompt</div>
-          </div>
         </div>
       </div>
     </div>
