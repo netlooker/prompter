@@ -1,0 +1,99 @@
+/* Custom styles for Monaco editor suggestion widget */
+
+/* Basic container styling */
+.monaco-editor .suggest-widget {
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Make the list taller */
+.monaco-editor .suggest-widget .monaco-list {
+  max-height: 420px !important;
+}
+
+/* Dark mode styling */
+.monaco-editor.vs-dark .suggest-widget,
+.monaco-editor.hc-black .suggest-widget {
+  background-color: #1e293b !important;
+}
+
+/* For each markdown element type, replace checkboxes with custom icons */
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row .suggest-icon::before {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+/* Heading styles */
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Heading 1"] .suggest-icon::before {
+  content: "H1";
+  font-weight: bold;
+  color: #60a5fa;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Heading 2"] .suggest-icon::before {
+  content: "H2";
+  font-weight: bold;
+  color: #60a5fa;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Heading 3"] .suggest-icon::before {
+  content: "H3";
+  font-weight: bold;
+  color: #60a5fa;
+}
+
+/* List styles */
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="List item"] .suggest-icon::before {
+  content: "•";
+  color: #10b981;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Numbered list"] .suggest-icon::before {
+  content: "1.";
+  color: #10b981;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Task"] .suggest-icon::before {
+  content: "☑";
+  color: #10b981;
+}
+
+/* Format styles */
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Bold"] .suggest-icon::before {
+  content: "B";
+  font-weight: bold;
+  color: #f59e0b;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Italic"] .suggest-icon::before {
+  content: "I";
+  font-style: italic;
+  color: #f59e0b;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="code"] .suggest-icon::before,
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Code"] .suggest-icon::before {
+  content: "<>";
+  font-family: monospace;
+  color: #ec4899;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Blockquote"] .suggest-icon::before {
+  content: "❝";
+  color: #8b5cf6;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Link"] .suggest-icon::before {
+  content: "🔗";
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Image"] .suggest-icon::before {
+  content: "🖼️";
+  padding-right: 2px;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row[aria-label*="Horizontal"] .suggest-icon::before {
+  content: "―";
+  color: #6b7280;
+}

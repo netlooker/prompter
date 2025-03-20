@@ -5,6 +5,7 @@ import MarkdownToolbar from './MarkdownToolbar';
 import MarkdownPreview from './MarkdownPreview';
 import { AlertTriangle, ChevronsRight, Edit, Eye } from 'lucide-react';
 import { loadTokyoNightThemes } from './monaco-themes';
+import './monaco-suggestion.css';
 
 interface MarkdownEditorProps {
   darkMode: boolean;
@@ -62,6 +63,19 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const loaded = await loadTokyoNightThemes(monaco);
     setThemesLoaded(loaded);
     
+    // Customize suggestion items rendering
+    const originalRenderer = monaco.languages.CompletionItemKind.toIcon;
+    monaco.languages.CompletionItemKind.toIcon = function(kind) {
+      const result = originalRenderer(kind);
+      
+      // Override icons for our markdown snippets
+      if (kind === monaco.languages.CompletionItemKind.Snippet) {
+        return { fontText: '✏️' };
+      }
+      
+      return result;
+    };
+    
     // Register markdown specific features
     monaco.languages.registerCompletionItemProvider('markdown', {
       provideCompletionItems: (model, position) => {
@@ -79,97 +93,125 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '# ${1:Heading}',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Main heading',
+            documentation: 'Insert a level 1 heading (title)'
           },
           {
             label: '## Heading 2',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '## ${1:Heading}',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Section heading',
+            documentation: 'Insert a level 2 heading (section)'
           },
           {
             label: '### Heading 3',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '### ${1:Heading}',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Subsection heading',
+            documentation: 'Insert a level 3 heading (subsection)'
           },
           {
             label: '**Bold**',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '**${1:text}**',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Bold text',
+            documentation: 'Make selected text bold'
           },
           {
             label: '*Italic*',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '*${1:text}*',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Italic text',
+            documentation: 'Make selected text italic'
           },
           {
             label: '- List item',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '- ${1:List item}',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Bullet list',
+            documentation: 'Insert a bullet point list item'
           },
           {
             label: '1. Numbered list item',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '1. ${1:List item}',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Numbered list',
+            documentation: 'Insert a numbered list item (automatically continues)'
           },
           {
             label: '> Blockquote',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '> ${1:Blockquote}',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Quote block',
+            documentation: 'Insert a blockquote for references or emphasis'
           },
           {
             label: '- [ ] Task',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '- [ ] ${1:Task description}',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Checklist item',
+            documentation: 'Insert a checkbox task item'
           },
           {
             label: 'Link',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '[${1:Link text}](${2:url})',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Hyperlink',
+            documentation: 'Insert a link to a URL'
           },
           {
             label: 'Image',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '![${1:Alt text}](${2:url})',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Image embed',
+            documentation: 'Insert an image with alt text'
           },
           {
             label: 'Code block',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '```${1:language}\n${2:code}\n```',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Formatted code',
+            documentation: 'Insert a code block with syntax highlighting'
           },
           {
             label: '`Inline code`',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '`${1:code}`',
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range
+            range,
+            detail: 'Code span',
+            documentation: 'Format text as inline code'
           },
           {
             label: 'Horizontal rule',
             kind: monaco.languages.CompletionItemKind.Snippet,
             insertText: '---\n',
-            range
+            range,
+            detail: 'Section divider',
+            documentation: 'Insert a horizontal dividing line'
           }
         ];
         
@@ -183,6 +225,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     
     // Setup editor keybindings for common markdown tasks
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+      // Save action still works with keyboard shortcut despite button removal
       handleToolbarAction('save');
     });
     
@@ -192,6 +235,83 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
       handleToolbarAction('toggleSplitView');
+    });
+    
+    // Add auto-continue for ordered lists
+    editor.onKeyDown((e) => {
+      if (e.keyCode === monaco.KeyCode.Enter) {
+        const model = editor.getModel();
+        const position = editor.getPosition();
+        
+        if (model && position) {
+          const lineContent = model.getLineContent(position.lineNumber);
+          
+          // Match ordered list pattern: `1. `, `2. `, etc.
+          const orderedListMatch = lineContent.match(/^(\s*)(\d+)\.(\s+)(.*)/);
+          
+          // Match unordered list pattern: `- `, `* `, etc.
+          const unorderedListMatch = lineContent.match(/^(\s*)([\-\*\+])(\s+)(.*)/);
+          
+          if (orderedListMatch) {
+            const [, indent, num, space, text] = orderedListMatch;
+            const nextNum = parseInt(num, 10) + 1;
+            
+            // Only continue the list if there was content in the item
+            if (text.trim().length > 0) {
+              // Let the default Enter happen first
+              setTimeout(() => {
+                const newPosition = editor.getPosition();
+                if (newPosition) {
+                  const nextItem = `${indent}${nextNum}.${space}`;
+                  editor.executeEdits('auto-list', [{
+                    range: {
+                      startLineNumber: newPosition.lineNumber,
+                      startColumn: 1,
+                      endLineNumber: newPosition.lineNumber,
+                      endColumn: 1
+                    },
+                    text: nextItem
+                  }]);
+                  
+                  // Move cursor to end of inserted text
+                  editor.setPosition({
+                    lineNumber: newPosition.lineNumber,
+                    column: nextItem.length + 1
+                  });
+                }
+              }, 0);
+            }
+          } else if (unorderedListMatch) {
+            const [, indent, bullet, space, text] = unorderedListMatch;
+            
+            // Only continue the list if there was content in the item
+            if (text.trim().length > 0) {
+              // Let the default Enter happen first
+              setTimeout(() => {
+                const newPosition = editor.getPosition();
+                if (newPosition) {
+                  const nextItem = `${indent}${bullet}${space}`;
+                  editor.executeEdits('auto-list', [{
+                    range: {
+                      startLineNumber: newPosition.lineNumber,
+                      startColumn: 1,
+                      endLineNumber: newPosition.lineNumber,
+                      endColumn: 1
+                    },
+                    text: nextItem
+                  }]);
+                  
+                  // Move cursor to end of inserted text
+                  editor.setPosition({
+                    lineNumber: newPosition.lineNumber,
+                    column: nextItem.length + 1
+                  });
+                }
+              }, 0);
+            }
+          }
+        }
+      }
     });
     
     // Make editor focus automatically
@@ -273,6 +393,15 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         break;
       case 'heading3':
         insertTextAtCursor('### ');
+        break;
+      case 'heading4':
+        insertTextAtCursor('#### ');
+        break;
+      case 'heading5':
+        insertTextAtCursor('##### ');
+        break;
+      case 'heading6':
+        insertTextAtCursor('###### ');
         break;
       case 'bold':
         insertTextAtCursor('**', '**');
@@ -361,8 +490,19 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   suggest: {
                     showIcons: true,
                     showStatusBar: true,
-                    preview: true,
-                    snippetsPreventQuickSuggestions: false
+                    preview: false, // Disable preview to prevent jumping
+                    snippetsPreventQuickSuggestions: false,
+                    suggestLineHeight: 24,
+                    suggestFontSize: 14,
+                    maxVisibleSuggestions: 20,
+                    suggestSelection: 'first',
+                    showInlineDetails: false,
+                    insertMode: 'insert'
+                  },
+                  hover: {
+                    enabled: true,
+                    above: false, // Force hover to stay below
+                    delay: 300
                   }
                 }}
               />
@@ -419,8 +559,19 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 suggest: {
                   showIcons: true,
                   showStatusBar: true,
-                  preview: true,
-                  snippetsPreventQuickSuggestions: false
+                  preview: false, // Disable preview to prevent jumping
+                  snippetsPreventQuickSuggestions: false,
+                  suggestLineHeight: 24,
+                  suggestFontSize: 14,
+                  maxVisibleSuggestions: 20,
+                  suggestSelection: 'first',
+                  showInlineDetails: false,
+                  insertMode: 'insert'
+                },
+                hover: {
+                  enabled: true,
+                  above: false,
+                  delay: 300
                 }
               }}
             />
