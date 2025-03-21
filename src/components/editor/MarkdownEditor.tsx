@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as monaco from 'monaco-editor';
-import Editor, { OnMount, BeforeMount } from '@monaco-editor/react';
+import Editor, { OnMount } from '@monaco-editor/react';
 import MarkdownToolbar from './MarkdownToolbar';
 import MarkdownPreview from './MarkdownPreview';
-import { AlertTriangle, ChevronsRight, Edit, Eye } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { loadTokyoNightThemes } from './monaco-themes';
 import './monaco-suggestion.css';
 
@@ -23,19 +23,17 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [editorContent, setEditorContent] = useState<string>(initialValue);
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [splitView, setSplitView] = useState<boolean>(false);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<string>('');
-  const [themesLoaded, setThemesLoaded] = useState<boolean>(false);
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   
   // Define shared Monaco editor options
   const editorOptions = useMemo(() => ({
-    wordWrap: 'on',
-    minimap: { enabled: true, scale: 0.5, showSlider: 'mouseover' },
+    wordWrap: 'on' as const,
+    minimap: { enabled: true, scale: 0.5, showSlider: 'mouseover' as const },
     scrollBeyondLastLine: false,
-    lineNumbers: 'on',
-    renderLineHighlight: 'all',
+    lineNumbers: 'on' as const,
+    renderLineHighlight: 'all' as const,
     fontFamily: "'IBM Plex Mono', 'Fira Code', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace",
     fontSize: 14,
     tabSize: 2,
@@ -48,8 +46,8 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     },
     formatOnPaste: true,
     quickSuggestions: true,
-    cursorBlinking: 'smooth',
-    cursorSmoothCaretAnimation: 'on',
+    cursorBlinking: 'smooth' as const,
+    cursorSmoothCaretAnimation: 'on' as const,
     suggest: {
       showIcons: true,
       showStatusBar: true,
@@ -58,9 +56,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       suggestLineHeight: 24,
       suggestFontSize: 14,
       maxVisibleSuggestions: 20,
-      suggestSelection: 'first',
+      suggestSelection: 'first' as const,
       showInlineDetails: false,
-      insertMode: 'insert'
+      insertMode: 'insert' as const
     },
     hover: {
       enabled: true,
@@ -82,7 +80,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const autosaveTimer = setTimeout(() => {
       if (editorContent) {
         localStorage.setItem(autosaveKey, editorContent);
-        setIsSaved(true);
         setSaveMessage('Auto-saved');
         
         // Clear the message after 2 seconds
@@ -100,21 +97,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     monacoRef.current = monaco;
     
     // Load Tokyo Night themes
-    const loaded = await loadTokyoNightThemes(monaco);
-    setThemesLoaded(loaded);
-    
-    // Customize suggestion items rendering
-    const originalRenderer = monaco.languages.CompletionItemKind.toIcon;
-    monaco.languages.CompletionItemKind.toIcon = function(kind) {
-      const result = originalRenderer(kind);
-      
-      // Override icons for our markdown snippets
-      if (kind === monaco.languages.CompletionItemKind.Snippet) {
-        return { fontText: '✏️' };
-      }
-      
-      return result;
-    };
+    await loadTokyoNightThemes(monaco);
     
     // Register markdown specific features
     monaco.languages.registerCompletionItemProvider('markdown', {
@@ -360,7 +343,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const handleEditorChange = (value: string = '') => {
     setEditorContent(value);
-    setIsSaved(false);
     if (onChange) {
       onChange(value);
     }
@@ -407,7 +389,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
     if (action === 'save') {
       localStorage.setItem(autosaveKey, editorContent);
-      setIsSaved(true);
       setSaveMessage('Saved successfully');
       
       // Clear the message after 2 seconds

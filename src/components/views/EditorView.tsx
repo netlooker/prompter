@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { FileText, Save } from 'lucide-react';
 import { MarkdownEditor } from '../editor';
-
-
-
-
 interface EditorViewProps {
   darkMode: boolean;
   promptId?: string;
@@ -25,7 +21,6 @@ const [promptTitle, setPromptTitle] = useState(title);
 const editorRef = useRef<HTMLDivElement>(null);
 
 const cardBgClass = darkMode ? 'bg-slate-800' : 'bg-gray-50';
-const cardTextClass = darkMode ? 'text-gray-300' : 'text-gray-600';
 const buttonBgClass = darkMode ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-indigo-500 hover:bg-indigo-600';
 const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
 
@@ -44,13 +39,6 @@ const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
       setPromptTitle(headingMatch[1]);
     }
   }, [content]);
-  
-
-
-  
-
-  
-
 
   return (
     <div className="flex flex-col h-full">
@@ -84,8 +72,6 @@ const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
           />
         </div>
       </div>
-      
-
     </div>
   );
 }

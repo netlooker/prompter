@@ -17,7 +17,6 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
   
   // State for tracking active prompt and all prompts
   const [activePromptId, setActivePromptId] = useState<string | null>(null);
-  const [editMode, setEditMode] = useState<boolean>(false);
   const [prompts, setPrompts] = useState<Prompt[]>([
     { 
       id: '1', 
@@ -51,20 +50,6 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
   useEffect(() => {
     localStorage.setItem('prompter-prompts', JSON.stringify(prompts));
   }, [prompts]);
-
-  // Function to handle creating a new prompt
-  const handleNewPrompt = () => {
-    const newPrompt: Prompt = {
-      id: `${Date.now()}`,
-      name: 'New Prompt',
-      content: '# New Prompt\n\nReplace this with your instructions...',
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
-    setPrompts([...prompts, newPrompt]);
-    setActivePromptId(newPrompt.id);
-    onNavigate('editor');
-  };
 
   // Function to handle prompt content updates
   const handleSavePrompt = (content: string, title: string) => {
@@ -128,7 +113,6 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
             prompts={prompts}
             onEdit={handleEditPrompt}
             onDelete={handleDeletePrompt}
-            onNewPrompt={handleNewPrompt}
           />
         );
       

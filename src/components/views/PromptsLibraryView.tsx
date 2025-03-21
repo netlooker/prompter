@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Pencil, Plus, Search, Trash, History } from 'lucide-react';
+import { FileText, Pencil, Search, Trash } from 'lucide-react';
 import { Prompt } from '../../types';
 
 interface PromptsLibraryViewProps {
@@ -7,15 +7,13 @@ interface PromptsLibraryViewProps {
   prompts: Prompt[];
   onEdit: (promptId: string) => void;
   onDelete: (promptId: string) => void;
-  onNewPrompt: () => void;
 }
 
 function PromptsLibraryView({ 
   darkMode, 
   prompts, 
   onEdit, 
-  onDelete,
-  onNewPrompt 
+  onDelete
 }: PromptsLibraryViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -29,9 +27,7 @@ function PromptsLibraryView({
 
   // CSS Classes based on theme
   const cardBgClass = darkMode ? 'bg-slate-800' : 'bg-gray-50';
-  const cardSecondaryBgClass = darkMode ? 'bg-slate-700' : 'bg-gray-200';
   const cardTextClass = darkMode ? 'text-gray-300' : 'text-gray-600';
-  const buttonBgClass = darkMode ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-indigo-500 hover:bg-indigo-600';
   const hoverBgClass = darkMode ? 'hover:bg-slate-700' : 'hover:bg-gray-100';
   const inputBgClass = darkMode ? 'bg-slate-700' : 'bg-white';
   const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
