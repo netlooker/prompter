@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as monaco from 'monaco-editor';
 import Editor, { OnMount, BeforeMount } from '@monaco-editor/react';
 import MarkdownToolbar from './MarkdownToolbar';
@@ -28,6 +28,46 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [themesLoaded, setThemesLoaded] = useState<boolean>(false);
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
+  
+  // Define shared Monaco editor options
+  const editorOptions = useMemo(() => ({
+    wordWrap: 'on',
+    minimap: { enabled: true, scale: 0.5, showSlider: 'mouseover' },
+    scrollBeyondLastLine: false,
+    lineNumbers: 'on',
+    renderLineHighlight: 'all',
+    fontFamily: "'IBM Plex Mono', 'Fira Code', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace",
+    fontSize: 14,
+    tabSize: 2,
+    scrollbar: {
+      verticalScrollbarSize: 8,
+      horizontalScrollbarSize: 8,
+      verticalSliderSize: 8,
+      horizontalSliderSize: 8,
+      alwaysConsumeMouseWheel: false
+    },
+    formatOnPaste: true,
+    quickSuggestions: true,
+    cursorBlinking: 'smooth',
+    cursorSmoothCaretAnimation: 'on',
+    suggest: {
+      showIcons: true,
+      showStatusBar: true,
+      preview: false, // Disable preview to prevent jumping
+      snippetsPreventQuickSuggestions: false,
+      suggestLineHeight: 24,
+      suggestFontSize: 14,
+      maxVisibleSuggestions: 20,
+      suggestSelection: 'first',
+      showInlineDetails: false,
+      insertMode: 'insert'
+    },
+    hover: {
+      enabled: true,
+      above: false, // Force hover to stay below
+      delay: 300
+    }
+  }), []);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -467,44 +507,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 onMount={handleEditorDidMount}
                 beforeMount={handleBeforeMount}
                 theme={darkMode ? 'tokyo-night' : 'tokyo-night-light'}
-                options={{
-                  wordWrap: 'on',
-                  minimap: { enabled: true, scale: 0.5, showSlider: 'mouseover' },
-                  scrollBeyondLastLine: false,
-                  lineNumbers: 'on',
-                  renderLineHighlight: 'all',
-                  fontFamily: "'IBM Plex Mono', 'Fira Code', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace",
-                  fontSize: 14,
-                  tabSize: 2,
-                  scrollbar: {
-                    verticalScrollbarSize: 8,
-                    horizontalScrollbarSize: 8,
-                    verticalSliderSize: 8,
-                    horizontalSliderSize: 8,
-                    alwaysConsumeMouseWheel: false
-                  },
-                  formatOnPaste: true,
-                  quickSuggestions: true,
-                  cursorBlinking: 'smooth',
-                  cursorSmoothCaretAnimation: 'on',
-                  suggest: {
-                    showIcons: true,
-                    showStatusBar: true,
-                    preview: false, // Disable preview to prevent jumping
-                    snippetsPreventQuickSuggestions: false,
-                    suggestLineHeight: 24,
-                    suggestFontSize: 14,
-                    maxVisibleSuggestions: 20,
-                    suggestSelection: 'first',
-                    showInlineDetails: false,
-                    insertMode: 'insert'
-                  },
-                  hover: {
-                    enabled: true,
-                    above: false, // Force hover to stay below
-                    delay: 300
-                  }
-                }}
+                options={editorOptions}
               />
             </div>
             
@@ -536,44 +539,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               onMount={handleEditorDidMount}
               beforeMount={handleBeforeMount}
               theme={darkMode ? 'tokyo-night' : 'tokyo-night-light'}
-              options={{
-                wordWrap: 'on',
-                minimap: { enabled: true, scale: 0.5, showSlider: 'mouseover' },
-                scrollBeyondLastLine: false,
-                lineNumbers: 'on',
-                renderLineHighlight: 'all',
-                fontFamily: "'IBM Plex Mono', 'Fira Code', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace",
-                fontSize: 14,
-                tabSize: 2,
-                scrollbar: {
-                  verticalScrollbarSize: 8,
-                  horizontalScrollbarSize: 8,
-                  verticalSliderSize: 8,
-                  horizontalSliderSize: 8,
-                  alwaysConsumeMouseWheel: false
-                },
-                formatOnPaste: true,
-                quickSuggestions: true,
-                cursorBlinking: 'smooth',
-                cursorSmoothCaretAnimation: 'on',
-                suggest: {
-                  showIcons: true,
-                  showStatusBar: true,
-                  preview: false, // Disable preview to prevent jumping
-                  snippetsPreventQuickSuggestions: false,
-                  suggestLineHeight: 24,
-                  suggestFontSize: 14,
-                  maxVisibleSuggestions: 20,
-                  suggestSelection: 'first',
-                  showInlineDetails: false,
-                  insertMode: 'insert'
-                },
-                hover: {
-                  enabled: true,
-                  above: false,
-                  delay: 300
-                }
-              }}
+              options={editorOptions}
             />
           </div>
         )}
