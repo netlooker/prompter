@@ -168,7 +168,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 }) => {
   const [editorContent, setEditorContent] = useState<string>(initialValue);
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
-  const [splitView, setSplitView] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<string>("");
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
@@ -255,25 +254,41 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     // Load Tokyo Night themes
     await loadTokyoNightThemes(monaco);
 
-    // Disable word-based suggestions but keep our custom suggestions
-    monaco.languages.registerCompletionItemProvider("markdown", {
-      // Remove trigger characters so suggestions only appear with keyboard shortcuts
-      triggerCharacters: [],
-      provideCompletionItems: (_, position) => {
-        // Instead of using getWordUntilPosition, create a fixed range at the cursor position
-        // This prevents filtering suggestions based on the current word
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: position.column,
-          endColumn: position.column,
-        };
+    // Store providers globally to prevent duplicate registrations
+    if (!(window as any).__markdownProviders) {
+      (window as any).__markdownProviders = [];
+    }
 
-        return {
-          suggestions: createMarkdownSuggestions(monaco, range),
-        };
+    // Clean up old providers
+    const providers = (window as any).__markdownProviders;
+    providers.forEach((p: monaco.IDisposable) => p.dispose());
+    providers.length = 0;
+
+    // Register our new provider
+    const disposable = monaco.languages.registerCompletionItemProvider(
+      "markdown",
+      {
+        // Remove trigger characters so suggestions only appear with keyboard shortcuts
+        triggerCharacters: [],
+        provideCompletionItems: (_, position) => {
+          // Instead of using getWordUntilPosition, create a fixed range at the cursor position
+          // This prevents filtering suggestions based on the current word
+          const range = {
+            startLineNumber: position.lineNumber,
+            endLineNumber: position.lineNumber,
+            startColumn: position.column,
+            endColumn: position.column,
+          };
+
+          return {
+            suggestions: createMarkdownSuggestions(monaco, range),
+          };
+        },
       },
-    });
+    );
+
+    // Store the provider for cleanup on next mount
+    providers.push(disposable);
   };
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -286,10 +301,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyE, () => {
       handleToolbarAction("togglePreview");
-    });
-
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
-      handleToolbarAction("toggleSplitView");
     });
 
     // Add shortcut for suggestion widget - CMD+Space
@@ -436,20 +447,12 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const handleToolbarAction = (action: string) => {
     if (action === "togglePreview") {
-      setSplitView(false);
       setIsPreviewMode(!isPreviewMode);
       return;
     }
 
     if (action === "toggleEdit") {
       setIsPreviewMode(false);
-      setSplitView(false);
-      return;
-    }
-
-    if (action === "toggleSplitView") {
-      setIsPreviewMode(false);
-      setSplitView(!splitView);
       return;
     }
 
@@ -465,7 +468,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
 
     // Don't proceed with other actions if in preview mode
-    if (isPreviewMode && !splitView) return;
+    if (isPreviewMode) return;
 
     const editor = editorRef.current;
     if (!editor) return;
@@ -530,47 +533,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       <MarkdownToolbar
         onAction={handleToolbarAction}
         isPreviewMode={isPreviewMode}
-        isSplitView={splitView}
         darkMode={darkMode}
         saveMessage={saveMessage}
       />
 
       <div className="flex-grow relative">
-        {/* Split View */}
-        {splitView && (
-          <div className="flex h-full">
-            {/* Editor */}
-            <div className="w-1/2 h-full border-r border-gray-300 dark:border-gray-700">
-              <Editor
-                height="100%"
-                defaultLanguage="markdown"
-                value={editorContent}
-                onChange={handleEditorChange}
-                onMount={handleEditorDidMount}
-                beforeMount={handleBeforeMount}
-                theme={darkMode ? "tokyo-night" : "tokyo-night-light"}
-                options={editorOptions}
-              />
-            </div>
-
-            {/* Preview */}
-            <div className="w-1/2 h-full overflow-auto">
-              {editorContent ? (
-                <MarkdownPreview markdown={editorContent} darkMode={darkMode} />
-              ) : (
-                <div
-                  className={`flex flex-col items-center justify-center h-full ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-                >
-                  <AlertTriangle size={48} className="mb-4 opacity-50" />
-                  <p>No content to preview</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Editor Only View */}
-        {!isPreviewMode && !splitView && (
+        {!isPreviewMode && (
           <div className="absolute inset-0">
             <Editor
               height="100%"
@@ -586,7 +555,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         )}
 
         {/* Preview Only View */}
-        {isPreviewMode && !splitView && (
+        {isPreviewMode && (
           <div className="absolute inset-0">
             {editorContent ? (
               <MarkdownPreview markdown={editorContent} darkMode={darkMode} />

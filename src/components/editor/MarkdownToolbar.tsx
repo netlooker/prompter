@@ -11,7 +11,6 @@ import {
   Hash,
   Quote,
   Minus,
-  SplitSquareVertical,
   Edit,
   ChevronDown,
 } from "lucide-react";
@@ -19,7 +18,6 @@ import {
 interface MarkdownToolbarProps {
   onAction: (action: string) => void;
   isPreviewMode: boolean;
-  isSplitView?: boolean;
   darkMode: boolean;
   saveMessage?: string;
 }
@@ -27,7 +25,6 @@ interface MarkdownToolbarProps {
 const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
   onAction,
   isPreviewMode,
-  isSplitView = false,
   darkMode,
   saveMessage = "",
 }) => {
@@ -61,7 +58,7 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
     darkMode ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-900"
   }`;
 
-  const isEditingDisabled = isPreviewMode && !isSplitView;
+  const isEditingDisabled = isPreviewMode;
 
   // Function to render tooltip
   const withTooltip = (
@@ -87,9 +84,7 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
       <div className="flex mr-4 border-r pr-4 border-gray-700">
         {withTooltip(
           <button
-            className={
-              !isPreviewMode && !isSplitView ? activeButtonClass : buttonClass
-            }
+            className={!isPreviewMode ? activeButtonClass : buttonClass}
             onClick={() => onAction("toggleEdit")}
             title="Edit Mode"
           >
@@ -108,18 +103,6 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
             <Eye size={18} />
           </button>,
           "Preview Mode (Ctrl+E)",
-          true,
-        )}
-
-        {withTooltip(
-          <button
-            className={isSplitView ? activeButtonClass : buttonClass}
-            onClick={() => onAction("toggleSplitView")}
-            title="Split View"
-          >
-            <SplitSquareVertical size={18} />
-          </button>,
-          "Split View (Ctrl+P)",
           true,
         )}
       </div>
