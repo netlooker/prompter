@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { FileText, Save } from 'lucide-react';
-import { MarkdownEditor } from '../editor';
+import { useState, useEffect, useRef } from "react";
+import { FileText, Save } from "lucide-react";
+import { MarkdownEditor } from "../editor";
 interface EditorViewProps {
   darkMode: boolean;
   promptId?: string;
@@ -9,20 +9,22 @@ interface EditorViewProps {
   onSave?: (content: string, title: string) => void;
 }
 
-function EditorView({ 
-darkMode, 
-promptId, 
-initialContent = '# New Prompt\n\nReplace this with your instructions...', 
-title = 'New Prompt',
-onSave 
+function EditorView({
+  darkMode,
+  promptId,
+  initialContent = "# New Prompt\n\nReplace this with your instructions...",
+  title = "New Prompt",
+  onSave,
 }: EditorViewProps) {
-const [content, setContent] = useState(initialContent);
-const [promptTitle, setPromptTitle] = useState(title);
-const editorRef = useRef<HTMLDivElement>(null);
+  const [content, setContent] = useState(initialContent);
+  const [promptTitle, setPromptTitle] = useState(title);
+  const editorRef = useRef<HTMLDivElement>(null);
 
-const cardBgClass = darkMode ? 'bg-slate-800' : 'bg-gray-50';
-const buttonBgClass = darkMode ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-indigo-500 hover:bg-indigo-600';
-const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
+  const cardBgClass = darkMode ? "bg-slate-800" : "bg-gray-50";
+  const buttonBgClass = darkMode
+    ? "bg-indigo-500 hover:bg-indigo-600"
+    : "bg-indigo-500 hover:bg-indigo-600";
+  const borderClass = darkMode ? "border-gray-700" : "border-gray-200";
 
   // Handle save
   const handleSave = () => {
@@ -42,13 +44,15 @@ const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
 
   return (
     <div className="flex flex-col h-full">
-      <div className={`${cardBgClass} h-16 p-4 flex justify-between items-center border-b ${borderClass}`}>
+      <div
+        className={`${cardBgClass} h-16 p-4 flex justify-between items-center border-b ${borderClass}`}
+      >
         <div className="flex items-center">
           <FileText className="mr-3 h-6 w-6" />
           <h1 className="text-xl font-semibold">{promptTitle}</h1>
         </div>
         <div className="flex items-center space-x-2">
-          <button 
+          <button
             onClick={handleSave}
             className={`${buttonBgClass} text-white px-4 py-2 rounded-md flex items-center`}
           >
@@ -57,18 +61,15 @@ const borderClass = darkMode ? 'border-gray-700' : 'border-gray-200';
           </button>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-hidden flex">
         {/* Main editor area */}
-        <div 
-          ref={editorRef}
-          className="flex-1"
-        >
-          <MarkdownEditor 
+        <div ref={editorRef} className="flex-1">
+          <MarkdownEditor
             darkMode={darkMode}
             initialValue={content}
             onChange={setContent}
-            autosaveKey={`prompter-editor-${promptId || 'new'}`}
+            autosaveKey={`prompter-editor-${promptId || "new"}`}
           />
         </div>
       </div>

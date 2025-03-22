@@ -5,5 +5,4 @@ export interface Prompt {
   content: string;
   createdAt?: number;
   updatedAt?: number;
-
 }
