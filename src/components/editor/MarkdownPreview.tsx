@@ -26,7 +26,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
   return (
     <div
       ref={previewRef}
-      className={`prose max-w-none ${darkMode ? "prose-invert" : ""} px-4 py-4 overflow-y-auto h-full`}
+      className={`prose max-w-none ${darkMode ? "prose-invert" : ""} px-4 pt-1 pb-4 overflow-y-auto h-full`}
     ></div>
   );
 };
