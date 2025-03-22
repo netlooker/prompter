@@ -1,54 +1,84 @@
-# React + TypeScript + Vite
+# Prompter PWA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Progressive Web Application for creating, managing, and organizing AI prompts. Built with React 19, TypeScript, and Tailwind CSS 4.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Create and manage AI prompts with a rich markdown editor
+- Live preview of markdown content
+- Dark/light theme support
+- Local storage for data persistence
+- PWA capabilities for offline use
+- Responsive design for all devices
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend Framework**: React 19
+- **UI Framework**: Tailwind CSS 4
+- **Build Tool**: Vite 6
+- **Language**: TypeScript
+- **Editor**: Monaco Editor (for markdown editing)
+- **PWA Support**: Workbox
+- **Icons**: Lucide React
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Development
+
+### Prerequisites
+
+- Node.js 18+ and npm
+
+### Installation
+
+```bash
+# Clone the repository
+git clone [repository-url]
+cd prompter-pwa
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Building for Production
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Build the application
+npm run build
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+# Preview production build
+npm run preview
 ```
+
+### Docker Support
+
+Build and run using Docker:
+
+```bash
+# Build Docker image
+docker build -t prompter-pwa .
+
+# Run container
+docker run -p 8080:80 prompter-pwa
+```
+
+## PWA Features
+
+- Offline support
+- Installable on desktop and mobile
+- Automatic updates
+- Responsive design
+
+## Project Structure
+
+- `/src` - Application source code
+  - `/components` - React components
+    - `/editor` - Monaco editor configuration and components
+    - `/views` - Main application views
+  - `/assets` - Static assets and themes
+- `/public` - Static files and PWA assets
+
+## License
+
+MIT

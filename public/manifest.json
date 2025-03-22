@@ -2,7 +2,7 @@
   "name": "Prompter PWA",
   "short_name": "Prompter",
   "description": "Progressive Web App for prompt management",
-  "start_url": "/",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
