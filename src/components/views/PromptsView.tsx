@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { FileText, Pencil, Search, Trash } from 'lucide-react';
 import { Prompt } from '../../types';
 
-interface PromptsLibraryViewProps {
+interface PromptsViewProps {
   darkMode: boolean;
   prompts: Prompt[];
   onEdit: (promptId: string) => void;
   onDelete: (promptId: string) => void;
 }
 
-function PromptsLibraryView({ 
+function PromptsView({ 
   darkMode, 
   prompts, 
   onEdit, 
@@ -43,7 +43,7 @@ function PromptsLibraryView({
       <div className={`${cardBgClass} h-16 p-4 flex items-center border-b ${borderClass}`}>
         <div className="flex items-center">
           <FileText className="mr-3 h-6 w-6" />
-          <h1 className="text-xl font-semibold">Prompts Library</h1>
+          <h1 className="text-xl font-semibold">Prompts</h1>
         </div>
       </div>
 
@@ -100,4 +100,4 @@ function PromptsLibraryView({
   );
 }
 
-export default PromptsLibraryView;
+export default PromptsView;

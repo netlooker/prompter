@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { Settings } from 'lucide-react'
-import { DashboardView, EditorView, PromptsLibraryView } from './views'
+import { DashboardView, EditorView, PromptsView } from './views'
 import { Prompt } from '../types'
 
 interface MainLayoutProps {
@@ -75,7 +75,7 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
       setPrompts([...prompts, newPrompt]);
       setActivePromptId(newPromptId);
     }
-    onNavigate('prompts-library');
+    onNavigate('prompts');
   };
 
   // Function to handle editing a prompt
@@ -102,13 +102,13 @@ function MainLayout({ darkMode, activeView, onNavigate }: MainLayoutProps) {
           <DashboardView 
             darkMode={darkMode} 
             promptCount={prompts.length} 
-            onNavigateToPrompts={() => onNavigate('prompts-library')}
+            onNavigateToPrompts={() => onNavigate('prompts')}
           />
         );
       
-      case 'prompts-library':
+      case 'prompts':
         return (
-          <PromptsLibraryView 
+          <PromptsView 
             darkMode={darkMode}
             prompts={prompts}
             onEdit={handleEditPrompt}

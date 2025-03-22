@@ -45,7 +45,7 @@ function DashboardView({ darkMode, promptCount, onNavigateToPrompts }: Dashboard
               Getting Started
             </h3>
             <p className={`text-sm ${cardTextClass}`}>
-              Create and manage your prompts in the Prompts Library
+              Create and manage your collection in the Prompts section
             </p>
           </div>
         </div>

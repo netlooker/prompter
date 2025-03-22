@@ -26,7 +26,7 @@ function Sidebar({
   toggleSidebar, 
   toggleDarkMode,
   onNavigate,
-  activeView = 'prompts-library',
+  activeView = 'prompts',
   onNewPrompt
 }: SidebarProps) {
   // CSS Classes based on theme
@@ -41,7 +41,7 @@ function Sidebar({
   const navItems = [
     { id: 'new-prompt', icon: <Plus size={20} />, label: 'New Prompt', action: onNewPrompt },
     { id: 'dashboard', icon: <Home size={20} />, label: 'Dashboard' },
-    { id: 'prompts-library', icon: <FileText size={20} />, label: 'Prompts Library' },
+    { id: 'prompts', icon: <FileText size={20} />, label: 'Prompts' },
     { id: 'editor', icon: <Edit size={20} />, label: 'Editor' },
     { id: 'settings', icon: <Settings size={20} />, label: 'Settings' }
   ];

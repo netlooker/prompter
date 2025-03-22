@@ -14,7 +14,7 @@ function App() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [activeView, setActiveView] = useState('prompts-library') // Default to prompts library view
+  const [activeView, setActiveView] = useState('prompts') // Default to prompts view
 
   // Apply dark mode class to html element
   useEffect(() => {
