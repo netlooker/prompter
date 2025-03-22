@@ -14,12 +14,12 @@ function PromptsView({
   prompts, 
   onEdit, 
   onDelete
-}: PromptsLibraryViewProps) {
+}: PromptsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Filter prompts based on search query
   const filteredPrompts = searchQuery 
-    ? prompts.filter(prompt => 
+    ? prompts.filter((prompt: Prompt) => 
         prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         prompt.content.toLowerCase().includes(searchQuery.toLowerCase())
       )
@@ -62,7 +62,7 @@ function PromptsView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPrompts.map(prompt => (
+          {filteredPrompts.map((prompt: Prompt) => (
             <div 
               key={prompt.id} 
               className={`${cardBgClass} shadow p-4 border ${borderClass} ${hoverBgClass} transition-colors`}
