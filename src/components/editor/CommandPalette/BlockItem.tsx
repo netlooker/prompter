@@ -1,5 +1,5 @@
 // src/components/editor/CommandPalette/BlockItem.tsx
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { BlockItemProps } from "./types";
 
 export const BlockItem: React.FC<BlockItemProps> = ({
@@ -8,6 +8,32 @@ export const BlockItem: React.FC<BlockItemProps> = ({
   onSelect,
   darkMode,
 }) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Scroll selected item into view when selection changes
+  useEffect(() => {
+    if (isSelected && ref.current) {
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        const container = document.getElementById("command-palette-content");
+        if (container && ref.current) {
+          const containerRect = container.getBoundingClientRect();
+          const itemRect = ref.current.getBoundingClientRect();
+
+          if (
+            itemRect.bottom > containerRect.bottom ||
+            itemRect.top < containerRect.top
+          ) {
+            ref.current.scrollIntoView({
+              block: "nearest",
+              behavior: "auto", // Use auto instead of smooth for more reliable scrolling
+            });
+          }
+        }
+      });
+    }
+  }, [isSelected]);
+
   // Dynamic styling based on dark mode and selection state
   const bgClass = darkMode
     ? isSelected
@@ -22,6 +48,7 @@ export const BlockItem: React.FC<BlockItemProps> = ({
 
   return (
     <div
+      ref={ref}
       className={`px-4 py-2 flex items-center cursor-pointer ${bgClass} ${textClass}`}
       onClick={onSelect}
       role="option"

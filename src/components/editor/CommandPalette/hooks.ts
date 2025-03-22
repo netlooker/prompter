@@ -172,20 +172,30 @@ export const useBlockNavigation = ({
       const selectedElement = document.querySelector(`[data-block-id="${id}"]`);
 
       if (container && selectedElement) {
+        // Debug logging to troubleshoot scrolling issues
+        console.log("Scrolling to element:", id);
+        console.log("Element found:", selectedElement);
+
         const containerRect = container.getBoundingClientRect();
         const selectedRect = selectedElement.getBoundingClientRect();
+
+        console.log("Container rect:", containerRect);
+        console.log("Selected rect:", selectedRect);
 
         if (
           selectedRect.bottom > containerRect.bottom ||
           selectedRect.top < containerRect.top
         ) {
+          // Force scroll with explicit behavior
           selectedElement.scrollIntoView({
             block: "nearest",
-            behavior: "smooth",
+            behavior: "auto",
           });
         }
+      } else {
+        console.warn("Element not found for scrolling:", id);
       }
-    }, 0);
+    }, 50); // Increase delay to ensure DOM is ready
   }, []);
 
   // Handle keyboard navigation
@@ -197,6 +207,7 @@ export const useBlockNavigation = ({
           if (filteredBlocks.length > 0) {
             const newIndex = (selectedIndex + 1) % filteredBlocks.length;
             const newId = filteredBlocks[newIndex].id;
+            console.log("Arrow down - new selection:", newIndex, newId);
             setSelectedIndex(newIndex);
             setSelectedId(newId);
             scrollSelectedIntoView(newId);
@@ -210,6 +221,7 @@ export const useBlockNavigation = ({
               (selectedIndex - 1 + filteredBlocks.length) %
               filteredBlocks.length;
             const newId = filteredBlocks[newIndex].id;
+            console.log("Arrow up - new selection:", newIndex, newId);
             setSelectedIndex(newIndex);
             setSelectedId(newId);
             scrollSelectedIntoView(newId);

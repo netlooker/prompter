@@ -10,31 +10,31 @@ export const blockTypes: BlockType[] = [
     id: "role",
     name: "Role",
     description: "Define the AI's expertise and persona",
-    icon: "user",
+    icon: "User",
   },
   {
     id: "instruction",
     name: "Instruction",
     description: "Provide guidelines on how to approach tasks",
-    icon: "listChecks",
+    icon: "ListChecks",
   },
   {
     id: "template",
     name: "Template",
     description: "Reusable prompt structures",
-    icon: "layoutTemplate",
+    icon: "LayoutTemplate",
   },
   {
     id: "constraint",
     name: "Constraint",
     description: "Set limitations or requirements",
-    icon: "shield",
+    icon: "Shield",
   },
   {
     id: "system",
     name: "System",
     description: "Format and presentation instructions",
-    icon: "settings",
+    icon: "Settings",
   },
 ];
 
