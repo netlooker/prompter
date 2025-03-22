@@ -1,0 +1,22 @@
+/* Scrollbar styling to match the editor */
+.command-palette-scrollable::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.command-palette-scrollable::-webkit-scrollbar-thumb {
+  background-color: rgba(128, 128, 128, 0.5);
+  border-radius: 4px;
+}
+
+.command-palette-light::-webkit-scrollbar-thumb {
+  background-color: rgba(180, 180, 180, 0.5);
+}
+
+.command-palette-dark::-webkit-scrollbar-thumb {
+  background-color: rgba(90, 90, 90, 0.5);
+}
+
+.command-palette-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}

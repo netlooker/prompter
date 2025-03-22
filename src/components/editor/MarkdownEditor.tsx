@@ -4,9 +4,11 @@ import type { editor } from "monaco-editor";
 import Editor, { OnMount, Monaco } from "@monaco-editor/react";
 import MarkdownToolbar from "./MarkdownToolbar";
 import MarkdownPreview from "./MarkdownPreview";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, BookText } from "lucide-react";
 import { loadTokyoNightThemes } from "./monaco-themes";
 import "./monaco-suggestion.css";
+import { CommandPalette } from "./CommandPalette/CommandPalette";
+import { PromptBlock } from "./CommandPalette/types";
 
 interface MarkdownEditorProps {
   darkMode: boolean;
@@ -172,6 +174,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
 
+  // Add Command Palette state
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] =
+    useState<boolean>(false);
+
   const editorOptions = useMemo(
     () => ({
       wordWrap: "on" as const,
@@ -303,6 +309,11 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       handleToolbarAction("togglePreview");
     });
 
+    // Add shortcut for command palette (Ctrl+/ or Cmd+/)
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
+      setIsCommandPaletteOpen(true);
+    });
+
     // Add shortcut for suggestion widget - CMD+Space
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, () => {
       editor.trigger("keyboard", "editor.action.triggerSuggest", {});
@@ -411,6 +422,31 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
     // Make editor focus automatically
     setTimeout(() => editor.focus(), 100);
+  };
+
+  // Handle prompt block selection
+  const handleSelectBlock = (block: PromptBlock) => {
+    if (editorRef.current) {
+      const editor = editorRef.current;
+      const selection = editor.getSelection();
+
+      if (selection) {
+        const position = selection.getPosition();
+        const range = new monaco.Range(
+          position.lineNumber,
+          position.column,
+          position.lineNumber,
+          position.column,
+        );
+
+        editor.executeEdits("command-palette", [
+          { range, text: block.content, forceMoveMarkers: true },
+        ]);
+
+        // Focus back to editor
+        editor.focus();
+      }
+    }
   };
 
   const handleEditorChange = (value: string = "") => {
@@ -551,6 +587,20 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               theme={darkMode ? "tokyo-night" : "tokyo-night-light"}
               options={editorOptions}
             />
+
+            {/* Floating button to open command palette */}
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className={`absolute bottom-4 right-4 p-2 ${
+                darkMode
+                  ? "bg-indigo-600 hover:bg-indigo-700"
+                  : "bg-indigo-500 hover:bg-indigo-600"
+              } text-white rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+              aria-label="Insert prompt blocks"
+              title="Insert prompt blocks (Ctrl+/)"
+            >
+              <BookText size={18} />
+            </button>
           </div>
         )}
 
@@ -569,6 +619,15 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             )}
           </div>
         )}
+
+        {/* Command Palette */}
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+          onSelectBlock={handleSelectBlock}
+          editorInstance={editorRef.current}
+          darkMode={darkMode}
+        />
       </div>
     </div>
   );
