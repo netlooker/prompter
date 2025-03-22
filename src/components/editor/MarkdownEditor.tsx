@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as monaco from 'monaco-editor';
-import Editor, { OnMount } from '@monaco-editor/react';
+import Editor, { OnMount, Monaco } from '@monaco-editor/react';
 import MarkdownToolbar from './MarkdownToolbar';
 import MarkdownPreview from './MarkdownPreview';
 import { AlertTriangle } from 'lucide-react';
@@ -14,6 +14,135 @@ interface MarkdownEditorProps {
   autosaveKey?: string;
 }
 
+// Define our markdown suggestions outside the component to ensure they're consistent
+const createMarkdownSuggestions = (monaco: typeof import('monaco-editor'), range: monaco.IRange) => [
+  {
+    label: '# Heading 1',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '# ${1:Heading}',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Main heading',
+    documentation: 'Insert a level 1 heading (title)'
+  },
+  {
+    label: '## Heading 2',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '## ${1:Heading}',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Section heading',
+    documentation: 'Insert a level 2 heading (section)'
+  },
+  {
+    label: '### Heading 3',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '### ${1:Heading}',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Subsection heading',
+    documentation: 'Insert a level 3 heading (subsection)'
+  },
+  {
+    label: '**Bold**',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '**${1:text}**',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Bold text',
+    documentation: 'Make selected text bold'
+  },
+  {
+    label: '*Italic*',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '*${1:text}*',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Italic text',
+    documentation: 'Make selected text italic'
+  },
+  {
+    label: '- List item',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '- ${1:List item}',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Bullet list',
+    documentation: 'Insert a bullet point list item'
+  },
+  {
+    label: '1. Numbered list item',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '1. ${1:List item}',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Numbered list',
+    documentation: 'Insert a numbered list item (automatically continues)'
+  },
+  {
+    label: '> Blockquote',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '> ${1:Blockquote}',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Quote block',
+    documentation: 'Insert a blockquote for references or emphasis'
+  },
+  {
+    label: '- [ ] Task',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '- [ ] ${1:Task description}',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Checklist item',
+    documentation: 'Insert a checkbox task item'
+  },
+  {
+    label: 'Link',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '[${1:Link text}](${2:url})',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Hyperlink',
+    documentation: 'Insert a link to a URL'
+  },
+  {
+    label: 'Image',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '![${1:Alt text}](${2:url})',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Image embed',
+    documentation: 'Insert an image with alt text'
+  },
+  {
+    label: 'Code block',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '```${1:language}\n${2:code}\n```',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Formatted code',
+    documentation: 'Insert a code block with syntax highlighting'
+  },
+  {
+    label: '`Inline code`',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '`${1:code}`',
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    range,
+    detail: 'Code span',
+    documentation: 'Format text as inline code'
+  },
+  {
+    label: 'Horizontal rule',
+    kind: monaco.languages.CompletionItemKind.Snippet,
+    insertText: '---\n',
+    range,
+    detail: 'Section divider',
+    documentation: 'Insert a horizontal dividing line'
+  }
+];
+
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ 
   darkMode, 
   initialValue = '', 
@@ -24,16 +153,17 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [splitView, setSplitView] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<string>('');
-  const editorRef = useRef<any>(null);
-  const monacoRef = useRef<any>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
   
-  // Define shared Monaco editor options
   const editorOptions = useMemo(() => ({
     wordWrap: 'on' as const,
     minimap: { enabled: true, scale: 0.5, showSlider: 'mouseover' as const },
     scrollBeyondLastLine: false,
     lineNumbers: 'on' as const,
     renderLineHighlight: 'all' as const,
+    occurrencesHighlight: false,
+    selectionHighlight: false,
     fontFamily: "'IBM Plex Mono', 'Fira Code', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace",
     fontSize: 14,
     tabSize: 2,
@@ -45,26 +175,31 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       alwaysConsumeMouseWheel: false
     },
     formatOnPaste: true,
-    quickSuggestions: true,
+    quickSuggestions: false, // Disable quick suggestions completely
     cursorBlinking: 'smooth' as const,
     cursorSmoothCaretAnimation: 'on' as const,
     suggest: {
       showIcons: true,
       showStatusBar: true,
       preview: false, // Disable preview to prevent jumping
-      snippetsPreventQuickSuggestions: false,
+      snippetsPreventQuickSuggestions: true, // Prevent automatic suggestions
+      filterGraceful: false, // Don't filter suggestions
       suggestLineHeight: 24,
       suggestFontSize: 14,
       maxVisibleSuggestions: 20,
       suggestSelection: 'first' as const,
       showInlineDetails: false,
-      insertMode: 'insert' as const
+      insertMode: 'insert' as const,
+      suggestOnTriggerCharacters: false // Disable automatic triggering
     },
     hover: {
       enabled: true,
       above: false, // Force hover to stay below
       delay: 300
-    }
+    },
+    // Disable word-based suggestions and word highlighting
+    wordBasedSuggestions: 'off' as const,
+    links: false
   }), []);
 
   // Load from localStorage on mount
@@ -99,146 +234,23 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     // Load Tokyo Night themes
     await loadTokyoNightThemes(monaco);
     
-    // Register markdown specific features
+    // Disable word-based suggestions but keep our custom suggestions
     monaco.languages.registerCompletionItemProvider('markdown', {
+      // Remove trigger characters so suggestions only appear with keyboard shortcuts
+      triggerCharacters: [],
       provideCompletionItems: (model, position) => {
-        const word = model.getWordUntilPosition(position);
+        // Instead of using getWordUntilPosition, create a fixed range at the cursor position
+        // This prevents filtering suggestions based on the current word
         const range = {
           startLineNumber: position.lineNumber,
           endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn
+          startColumn: position.column,
+          endColumn: position.column
         };
-        
-        const suggestions = [
-          {
-            label: '# Heading 1',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '# ${1:Heading}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Main heading',
-            documentation: 'Insert a level 1 heading (title)'
-          },
-          {
-            label: '## Heading 2',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '## ${1:Heading}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Section heading',
-            documentation: 'Insert a level 2 heading (section)'
-          },
-          {
-            label: '### Heading 3',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '### ${1:Heading}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Subsection heading',
-            documentation: 'Insert a level 3 heading (subsection)'
-          },
-          {
-            label: '**Bold**',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '**${1:text}**',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Bold text',
-            documentation: 'Make selected text bold'
-          },
-          {
-            label: '*Italic*',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '*${1:text}*',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Italic text',
-            documentation: 'Make selected text italic'
-          },
-          {
-            label: '- List item',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '- ${1:List item}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Bullet list',
-            documentation: 'Insert a bullet point list item'
-          },
-          {
-            label: '1. Numbered list item',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '1. ${1:List item}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Numbered list',
-            documentation: 'Insert a numbered list item (automatically continues)'
-          },
-          {
-            label: '> Blockquote',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '> ${1:Blockquote}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Quote block',
-            documentation: 'Insert a blockquote for references or emphasis'
-          },
-          {
-            label: '- [ ] Task',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '- [ ] ${1:Task description}',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Checklist item',
-            documentation: 'Insert a checkbox task item'
-          },
-          {
-            label: 'Link',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '[${1:Link text}](${2:url})',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Hyperlink',
-            documentation: 'Insert a link to a URL'
-          },
-          {
-            label: 'Image',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '![${1:Alt text}](${2:url})',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Image embed',
-            documentation: 'Insert an image with alt text'
-          },
-          {
-            label: 'Code block',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '```${1:language}\n${2:code}\n```',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Formatted code',
-            documentation: 'Insert a code block with syntax highlighting'
-          },
-          {
-            label: '`Inline code`',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '`${1:code}`',
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-            detail: 'Code span',
-            documentation: 'Format text as inline code'
-          },
-          {
-            label: 'Horizontal rule',
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            insertText: '---\n',
-            range,
-            detail: 'Section divider',
-            documentation: 'Insert a horizontal dividing line'
-          }
-        ];
-        
-        return { suggestions };
+
+        return {
+          suggestions: createMarkdownSuggestions(monaco, range)
+        };
       }
     });
   };
@@ -248,7 +260,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     
     // Setup editor keybindings for common markdown tasks
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-      // Save action still works with keyboard shortcut despite button removal
       handleToolbarAction('save');
     });
     
@@ -258,6 +269,23 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
       handleToolbarAction('toggleSplitView');
+    });
+    
+    // Add shortcut for suggestion widget - CMD+Space
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, () => {
+      editor.trigger('keyboard', 'editor.action.triggerSuggest', {});
+    });
+    
+    // Add shortcut for suggestion widget - CMD+I (alternative)
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
+      // For selections, we need to prevent the default behavior
+      const selection = editor.getSelection();
+      if (selection && !selection.isEmpty()) {
+        // Trigger suggestions with a custom range
+        editor.trigger('keyboard', 'editor.action.triggerSuggest', {});
+      } else {
+        editor.trigger('keyboard', 'editor.action.triggerSuggest', {});
+      }
     });
     
     // Add auto-continue for ordered lists
@@ -459,9 +487,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
   };
 
-  // Define view mode buttons
-  // Removed floating ViewModeButtons component as requested;
-
   return (
     <div className="flex flex-col h-full">
       <MarkdownToolbar 
@@ -537,13 +562,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               <div className={`flex flex-col items-center justify-center h-full ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 <AlertTriangle size={48} className="mb-4 opacity-50" />
                 <p>No content to preview</p>
-              </div>
-            )}
-          </div>
-        )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
 };
 
 export default MarkdownEditor;
