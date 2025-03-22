@@ -1,28 +1,30 @@
 // src/components/editor/CommandPalette/types.ts
 
-export type PromptBlockCategory =
-  | "personas"
-  | "instructions"
-  | "templates"
-  | "constraints"
-  | "system";
-
-export interface PromptBlock {
-  id: string;
-  title: string;
-  description: string;
-  category: PromptBlockCategory;
-  content: string;
-  tags?: string[];
-  shortcut?: string;
+export interface BlockType {
+  id: string; // UUID
+  name: string; // Display name
+  description: string; // Explanation of this block type
+  icon: string; // Icon name from lucide-react
 }
 
+export interface Block {
+  id: string; // UUID
+  typeId: string; // Reference to parent BlockType.id
+  name: string; // Display name
+  description?: string; // Optional explanation
+  content: string; // Actual block content
+  tags?: string[]; // Optional tags for searching
+  createdAt: number; // Timestamp
+  updatedAt: number; // Last update timestamp
+}
+
+// Command Palette interfaces
 export interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectBlock: (block: PromptBlock) => void;
+  onSelectBlock: (block: Block) => void;
   editorInstance?: any; // Monaco editor instance
-  darkMode: boolean; // Add dark mode support to match app
+  darkMode: boolean;
 }
 
 export interface CommandSearchProps {
@@ -32,17 +34,53 @@ export interface CommandSearchProps {
   darkMode: boolean;
 }
 
-export interface CommandItemProps {
-  block: PromptBlock;
+export interface BlockTypeItemProps {
+  blockType: BlockType;
   isSelected: boolean;
   onSelect: () => void;
   darkMode: boolean;
 }
 
-export interface CommandGroupProps {
-  category: PromptBlockCategory;
-  blocks: PromptBlock[];
-  selectedId: string | null;
-  onSelectBlock: (block: PromptBlock) => void;
+export interface BlockItemProps {
+  block: Block;
+  isSelected: boolean;
+  onSelect: () => void;
   darkMode: boolean;
+}
+
+export interface BlockTypeListProps {
+  blockTypes: BlockType[];
+  selectedId: string | null;
+  onSelectBlockType: (blockType: BlockType) => void;
+  darkMode: boolean;
+}
+
+export interface BlockListProps {
+  blocks: Block[];
+  selectedId: string | null;
+  onSelectBlock: (block: Block) => void;
+  blockType: BlockType;
+  darkMode: boolean;
+  onBack: () => void;
+}
+
+// For backward compatibility during transition
+export interface CommandGroupProps {
+  category: string;
+  blocks: Block[];
+  selectedId: string | null;
+  onSelectBlock: (block: Block) => void;
+  darkMode: boolean;
+}
+
+export interface CommandItemProps {
+  block: Block;
+  isSelected: boolean;
+  onSelect: () => void;
+  darkMode: boolean;
+}
+
+export enum PaletteView {
+  TYPES = "types",
+  BLOCKS = "blocks",
 }

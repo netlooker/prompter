@@ -2,9 +2,10 @@
 import React, { useEffect, useRef } from "react";
 import "./CommandPalette.css";
 import { createPortal } from "react-dom";
-import { CommandPaletteProps, PromptBlockCategory } from "./types";
+import { CommandPaletteProps, PaletteView } from "./types";
 import { CommandSearch } from "./CommandSearch";
-import { CommandGroup } from "./CommandGroup";
+import { BlockTypeList } from "./BlockTypeList";
+import { BlockList } from "./BlockList";
 import { useCommandPalette } from "./hooks";
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -16,22 +17,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Define category order for display
-  const categoryOrder: PromptBlockCategory[] = [
-    "personas",
-    "instructions",
-    "templates",
-    "constraints",
-    "system",
-  ];
-
   const {
+    view,
     searchQuery,
-    groupedBlocks,
-    selectedId,
+    selectedBlockType,
+    selectedTypeId,
+    selectedBlockId,
+    filteredBlockTypes,
+    filteredBlocks,
     handleSearchChange,
     handleKeyDown,
+    handleSelectBlockType,
     handleSelectBlock,
+    handleBack,
   } = useCommandPalette({
     isOpen,
     onClose,
@@ -87,7 +85,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const textMutedClass = darkMode ? "text-gray-400" : "text-gray-500";
   const footerBgClass = darkMode ? "bg-gray-800" : "bg-gray-50";
 
-  // Render modal using portal
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div
@@ -104,7 +101,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             id="command-palette-title"
             className={`text-lg font-medium ${textClass}`}
           >
-            Prompt Blocks
+            {view === PaletteView.TYPES
+              ? "Prompt Blocks"
+              : selectedBlockType?.name
+                ? `${selectedBlockType.name} Blocks`
+                : "Blocks"}
           </h2>
           <button
             onClick={onClose}
@@ -139,23 +140,33 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           className={`flex-1 overflow-y-auto command-palette-scrollable command-palette-${darkMode ? "dark" : "light"}`}
           id="command-palette-content"
         >
-          {Object.keys(groupedBlocks).length > 0 ? (
-            // Sort categories according to the defined order
-            categoryOrder
-              .filter((category) => groupedBlocks[category]?.length > 0)
-              .map((category) => (
-                <CommandGroup
-                  key={category}
-                  category={category}
-                  blocks={groupedBlocks[category] || []}
-                  selectedId={selectedId}
-                  onSelectBlock={handleSelectBlock}
-                  darkMode={darkMode}
-                />
-              ))
+          {view === PaletteView.TYPES ? (
+            // Block Types View
+            <BlockTypeList
+              blockTypes={filteredBlockTypes}
+              selectedId={selectedTypeId}
+              onSelectBlockType={handleSelectBlockType}
+              darkMode={darkMode}
+            />
           ) : (
+            // Blocks View (for selected type)
+            selectedBlockType && (
+              <BlockList
+                blocks={filteredBlocks}
+                selectedId={selectedBlockId}
+                onSelectBlock={handleSelectBlock}
+                blockType={selectedBlockType}
+                darkMode={darkMode}
+                onBack={handleBack}
+              />
+            )
+          )}
+
+          {/* No results message */}
+          {((view === PaletteView.TYPES && filteredBlockTypes.length === 0) ||
+            (view === PaletteView.BLOCKS && filteredBlocks.length === 0)) && (
             <div className={`p-4 text-center ${textMutedClass}`}>
-              No matching prompt blocks found
+              No matching items found
             </div>
           )}
         </div>
@@ -168,6 +179,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               <span className="mr-2">↑↓</span>
               <span>Navigate</span>
             </div>
+            {view === PaletteView.TYPES ? (
+              <div>
+                <span className="mr-2">→</span>
+                <span>Select</span>
+              </div>
+            ) : (
+              <div>
+                <span className="mr-2">←</span>
+                <span>Back</span>
+              </div>
+            )}
             <div>
               <span className="mr-2">Enter</span>
               <span>Select</span>

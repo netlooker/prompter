@@ -1,38 +1,171 @@
 // src/components/editor/CommandPalette/hooks.ts
 import { useState, useEffect, useCallback } from "react";
-import { PromptBlock } from "./types";
-import { promptBlocks } from "./data";
-import { fuzzySearch, groupByCategory } from "./utils";
+import { Block, BlockType, PaletteView } from "./types";
+import { blockTypes, getBlocksByType } from "./data";
+import { fuzzySearch } from "./utils";
 
-// Keyboard navigation hook
-export interface UseKeyboardNavigationProps {
-  filteredBlocks: PromptBlock[];
-  onSelect: (block: PromptBlock) => void;
+// Hook for navigating between block types
+export interface UseBlockTypeNavigationProps {
+  onSelectBlockType: (blockType: BlockType) => void;
   onClose: () => void;
+  searchQuery: string;
 }
 
-export const useKeyboardNavigation = ({
-  filteredBlocks,
-  onSelect,
+export const useBlockTypeNavigation = ({
+  onSelectBlockType,
   onClose,
-}: UseKeyboardNavigationProps) => {
+  searchQuery,
+}: UseBlockTypeNavigationProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(
-    filteredBlocks.length > 0 ? filteredBlocks[0].id : null,
+    blockTypes.length > 0 ? blockTypes[0].id : null,
   );
+
+  // Filter block types based on search query
+  const filteredBlockTypes = searchQuery
+    ? fuzzySearch(blockTypes, searchQuery, ["name", "description"])
+    : blockTypes;
+
+  // Update selected item when filtered block types change
+  useEffect(() => {
+    if (filteredBlockTypes.length > 0) {
+      setSelectedIndex(0);
+      setSelectedId(filteredBlockTypes[0].id);
+    } else {
+      setSelectedId(null);
+    }
+  }, [filteredBlockTypes]);
+
+  // Scroll selected item into view
+  const scrollSelectedIntoView = useCallback((id: string) => {
+    setTimeout(() => {
+      const container = document.getElementById("command-palette-content");
+      const selectedElement = document.querySelector(
+        `[data-block-type-id="${id}"]`,
+      );
+
+      if (container && selectedElement) {
+        const containerRect = container.getBoundingClientRect();
+        const selectedRect = selectedElement.getBoundingClientRect();
+
+        if (
+          selectedRect.bottom > containerRect.bottom ||
+          selectedRect.top < containerRect.top
+        ) {
+          selectedElement.scrollIntoView({
+            block: "nearest",
+            behavior: "smooth",
+          });
+        }
+      }
+    }, 0);
+  }, []);
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      switch (event.key) {
+        case "ArrowDown":
+          event.preventDefault();
+          if (filteredBlockTypes.length > 0) {
+            const newIndex = (selectedIndex + 1) % filteredBlockTypes.length;
+            const newId = filteredBlockTypes[newIndex].id;
+            setSelectedIndex(newIndex);
+            setSelectedId(newId);
+            scrollSelectedIntoView(newId);
+          }
+          break;
+
+        case "ArrowUp":
+          event.preventDefault();
+          if (filteredBlockTypes.length > 0) {
+            const newIndex =
+              (selectedIndex - 1 + filteredBlockTypes.length) %
+              filteredBlockTypes.length;
+            const newId = filteredBlockTypes[newIndex].id;
+            setSelectedIndex(newIndex);
+            setSelectedId(newId);
+            scrollSelectedIntoView(newId);
+          }
+          break;
+
+        case "ArrowRight":
+        case "Enter":
+          event.preventDefault();
+          if (selectedId && filteredBlockTypes.length > 0) {
+            const selectedBlockType = filteredBlockTypes.find(
+              (blockType) => blockType.id === selectedId,
+            );
+            if (selectedBlockType) {
+              onSelectBlockType(selectedBlockType);
+            }
+          }
+          break;
+
+        case "Escape":
+          event.preventDefault();
+          onClose();
+          break;
+
+        default:
+          break;
+      }
+    },
+    [
+      filteredBlockTypes,
+      selectedIndex,
+      selectedId,
+      onSelectBlockType,
+      onClose,
+      scrollSelectedIntoView,
+    ],
+  );
+
+  return {
+    selectedId,
+    filteredBlockTypes,
+    handleKeyDown,
+  };
+};
+
+// Hook for navigating blocks within a type
+export interface UseBlockNavigationProps {
+  blockType: BlockType;
+  onSelectBlock: (block: Block) => void;
+  onBack: () => void;
+  onClose: () => void;
+  searchQuery: string;
+}
+
+export const useBlockNavigation = ({
+  blockType,
+  onSelectBlock,
+  onBack,
+  onClose,
+  searchQuery,
+}: UseBlockNavigationProps) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Get blocks for the selected type
+  const typeBlocks = getBlocksByType(blockType.id);
+
+  // Filter blocks based on search query
+  const filteredBlocks = searchQuery
+    ? fuzzySearch(typeBlocks, searchQuery, ["name", "description", "tags"])
+    : typeBlocks;
 
   // Update selected item when filtered blocks change
   useEffect(() => {
     if (filteredBlocks.length > 0) {
-      // Reset to first item when filter changes
       setSelectedIndex(0);
       setSelectedId(filteredBlocks[0].id);
     } else {
       setSelectedId(null);
     }
-  }, [filteredBlocks]);
+  }, [filteredBlocks, blockType.id]);
 
-  // Function to scroll selected item into view
+  // Scroll selected item into view
   const scrollSelectedIntoView = useCallback((id: string) => {
     setTimeout(() => {
       const container = document.getElementById("command-palette-content");
@@ -42,12 +175,10 @@ export const useKeyboardNavigation = ({
         const containerRect = container.getBoundingClientRect();
         const selectedRect = selectedElement.getBoundingClientRect();
 
-        // Check if the element is not fully visible
         if (
           selectedRect.bottom > containerRect.bottom ||
           selectedRect.top < containerRect.top
         ) {
-          // If item is below visible area or above visible area, scroll it into view
           selectedElement.scrollIntoView({
             block: "nearest",
             behavior: "smooth",
@@ -85,6 +216,11 @@ export const useKeyboardNavigation = ({
           }
           break;
 
+        case "ArrowLeft":
+          event.preventDefault();
+          onBack();
+          break;
+
         case "Enter":
           event.preventDefault();
           if (selectedId && filteredBlocks.length > 0) {
@@ -92,7 +228,7 @@ export const useKeyboardNavigation = ({
               (block) => block.id === selectedId,
             );
             if (selectedBlock) {
-              onSelect(selectedBlock);
+              onSelectBlock(selectedBlock);
             }
           }
           break;
@@ -110,25 +246,17 @@ export const useKeyboardNavigation = ({
       filteredBlocks,
       selectedIndex,
       selectedId,
-      onSelect,
+      onSelectBlock,
+      onBack,
       onClose,
       scrollSelectedIntoView,
     ],
   );
 
-  // Handle item selection
-  const handleSelect = useCallback(
-    (block: PromptBlock) => {
-      setSelectedId(block.id);
-      setSelectedIndex(filteredBlocks.findIndex((b) => b.id === block.id));
-    },
-    [filteredBlocks],
-  );
-
   return {
     selectedId,
+    filteredBlocks,
     handleKeyDown,
-    handleSelect,
   };
 };
 
@@ -136,7 +264,7 @@ export const useKeyboardNavigation = ({
 interface UseCommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectBlock: (block: PromptBlock) => void;
+  onSelectBlock: (block: Block) => void;
   editorInstance?: any;
 }
 
@@ -146,30 +274,36 @@ export const useCommandPalette = ({
   onSelectBlock,
   editorInstance,
 }: UseCommandPaletteProps) => {
+  const [view, setView] = useState<PaletteView>(PaletteView.TYPES);
+  const [selectedBlockType, setSelectedBlockType] = useState<BlockType | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredBlocks, setFilteredBlocks] =
-    useState<PromptBlock[]>(promptBlocks);
 
-  // Reset search query when command palette opens
+  // Reset state when command palette opens or closes
   useEffect(() => {
     if (isOpen) {
+      setView(PaletteView.TYPES);
+      setSelectedBlockType(null);
       setSearchQuery("");
-      setFilteredBlocks(promptBlocks);
     }
   }, [isOpen]);
 
-  // Filter blocks based on search query
-  useEffect(() => {
-    const results = fuzzySearch(promptBlocks, searchQuery);
-    setFilteredBlocks(results);
-  }, [searchQuery]);
+  // Handle block type selection
+  const handleSelectBlockType = useCallback((blockType: BlockType) => {
+    setSelectedBlockType(blockType);
+    setView(PaletteView.BLOCKS);
+  }, []);
 
-  // Group filtered blocks by category
-  const groupedBlocks = groupByCategory(filteredBlocks);
+  // Handle back navigation
+  const handleBack = useCallback(() => {
+    setView(PaletteView.TYPES);
+    setSelectedBlockType(null);
+  }, []);
 
-  // Handle block selection
+  // Handle block selection and insertion
   const handleSelectBlock = useCallback(
-    (block: PromptBlock) => {
+    (block: Block) => {
       if (editorInstance) {
         // Get current cursor position
         const selection = editorInstance.getSelection();
@@ -201,76 +335,51 @@ export const useCommandPalette = ({
     [editorInstance, onSelectBlock, onClose],
   );
 
-  // Use keyboard navigation hook
-  const { selectedId, handleKeyDown, handleSelect } = useKeyboardNavigation({
-    filteredBlocks,
-    onSelect: handleSelectBlock,
-    onClose,
-  });
-
   // Update search query
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
   }, []);
 
-  return {
+  // Block type navigation
+  const {
+    selectedId: selectedTypeId,
+    filteredBlockTypes,
+    handleKeyDown: handleTypeKeyDown,
+  } = useBlockTypeNavigation({
+    onSelectBlockType: handleSelectBlockType,
+    onClose,
     searchQuery,
+  });
+
+  // Block navigation (only used when a block type is selected)
+  const {
+    selectedId: selectedBlockId,
     filteredBlocks,
-    groupedBlocks,
-    selectedId,
+    handleKeyDown: handleBlockKeyDown,
+  } = useBlockNavigation({
+    blockType: selectedBlockType || blockTypes[0], // Fallback to first block type
+    onSelectBlock: handleSelectBlock,
+    onBack: handleBack,
+    onClose,
+    searchQuery,
+  });
+
+  // Determine which key handler to use based on current view
+  const handleKeyDown =
+    view === PaletteView.TYPES ? handleTypeKeyDown : handleBlockKeyDown;
+
+  return {
+    view,
+    searchQuery,
+    selectedBlockType,
+    selectedTypeId,
+    selectedBlockId,
+    filteredBlockTypes,
+    filteredBlocks,
     handleSearchChange,
     handleKeyDown,
+    handleSelectBlockType,
     handleSelectBlock,
-    handleSelect,
-  };
-};
-
-// Monaco editor integration hook - this hook is not currently used but kept for reference
-export const useMonacoCommandPalette = (_editorRef: React.RefObject<any>) => {
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-
-  const openCommandPalette = useCallback(() => {
-    setIsCommandPaletteOpen(true);
-  }, []);
-
-  const closeCommandPalette = useCallback(() => {
-    setIsCommandPaletteOpen(false);
-  }, []);
-
-  const handleSelectBlock = useCallback((block: PromptBlock) => {
-    console.log(`Selected block: ${block.title}`);
-  }, []);
-
-  // We're not using this effect in the current implementation
-  // The keyboard shortcut is registered directly in MarkdownEditor.tsx
-  /*
-  useEffect(() => {
-    const editorInstance = editorRef.current;
-    if (!editorInstance) return;
-
-    // This requires Monaco to be in scope, which we don't have here
-    const keyMod = 2048; // CtrlCmd
-    const keyCode = 85;  // KeyP/Slash
-
-    const disposable = editorInstance.addCommand(
-      keyMod | keyCode,
-      () => {
-        window.event?.preventDefault();
-        openCommandPalette();
-        return null;
-      }
-    );
-
-    return () => {
-      disposable?.dispose();
-    };
-  }, [editorRef, openCommandPalette]);
-  */
-
-  return {
-    isCommandPaletteOpen,
-    openCommandPalette,
-    closeCommandPalette,
-    handleSelectBlock,
+    handleBack,
   };
 };

@@ -1,48 +1,36 @@
 // src/components/editor/CommandPalette/utils.ts
-import { PromptBlock } from "./types";
 
 /**
- * Simple fuzzy search implementation that matches query against multiple fields
+ * Enhanced fuzzy search implementation that matches query against specified fields
  */
-export const fuzzySearch = (
-  blocks: PromptBlock[],
+export function fuzzySearch<T>(
+  items: T[],
   query: string,
-): PromptBlock[] => {
+  keys: (keyof T)[],
+): T[] {
   if (!query.trim()) {
-    return blocks;
+    return items;
   }
 
   const lowerCaseQuery = query.toLowerCase();
 
-  return blocks.filter((block) => {
-    // Check matches in title, description, category, and tags
-    const titleMatch = block.title.toLowerCase().includes(lowerCaseQuery);
-    const descMatch = block.description.toLowerCase().includes(lowerCaseQuery);
-    const categoryMatch = block.category.toLowerCase().includes(lowerCaseQuery);
+  return items.filter((item) => {
+    return keys.some((key) => {
+      const value = item[key];
 
-    // Check tags (if available)
-    const tagMatch =
-      block.tags?.some((tag) => tag.toLowerCase().includes(lowerCaseQuery)) ||
-      false;
-
-    return titleMatch || descMatch || categoryMatch || tagMatch;
-  });
-};
-
-/**
- * Group blocks by category
- */
-export const groupByCategory = (
-  blocks: PromptBlock[],
-): Record<string, PromptBlock[]> => {
-  return blocks.reduce(
-    (acc, block) => {
-      if (!acc[block.category]) {
-        acc[block.category] = [];
+      // Handle array values (like tags)
+      if (Array.isArray(value)) {
+        return value.some((v) =>
+          String(v).toLowerCase().includes(lowerCaseQuery),
+        );
       }
-      acc[block.category].push(block);
-      return acc;
-    },
-    {} as Record<string, PromptBlock[]>,
-  );
-};
+
+      // Handle string values
+      if (typeof value === "string") {
+        return value.toLowerCase().includes(lowerCaseQuery);
+      }
+
+      return false;
+    });
+  });
+}

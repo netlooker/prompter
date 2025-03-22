@@ -8,7 +8,7 @@ import { AlertTriangle, BookText } from "lucide-react";
 import { loadTokyoNightThemes } from "./monaco-themes";
 import "./monaco-suggestion.css";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
-import { PromptBlock } from "./CommandPalette/types";
+import { Block } from "./CommandPalette/types";
 
 interface MarkdownEditorProps {
   darkMode: boolean;
@@ -425,7 +425,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   // Handle prompt block selection
-  const handleSelectBlock = (block: PromptBlock) => {
+  const handleSelectBlock = (block: Block) => {
     if (editorRef.current) {
       const editor = editorRef.current;
       const selection = editor.getSelection();

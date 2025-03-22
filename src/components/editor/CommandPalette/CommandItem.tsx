@@ -18,7 +18,6 @@ export const CommandItem: React.FC<CommandItemProps> = ({
       : "hover:bg-gray-100";
 
   const textClass = darkMode ? "text-white" : "text-gray-900";
-
   const descriptionClass = darkMode ? "text-gray-300" : "text-gray-500";
 
   return (
@@ -31,16 +30,16 @@ export const CommandItem: React.FC<CommandItemProps> = ({
       data-block-id={block.id}
     >
       <div className="flex flex-col">
-        <div className="font-medium">{block.title}</div>
+        <div className="font-medium">{block.name}</div>
         <div className={`text-sm ${descriptionClass}`}>{block.description}</div>
       </div>
 
-      {block.shortcut && (
+      {block.tags && block.tags.length > 0 && (
         <div className="ml-4 flex-shrink-0">
           <span
             className={`px-2 py-1 text-xs rounded ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}
           >
-            {block.shortcut}
+            {block.tags[0]}
           </span>
         </div>
       )}
